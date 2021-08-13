@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Main.qml</file>
+        <file>pages/MainPage.qml</file>
+        <file>notify/Notification.qml</file>
+        <file>notify/Notify.qml</file>
+        <file>notify/qmldir</file>
+        <file>colors/Colors.qml</file>
+        <file>colors/qmldir</file>
+        <file>pass/PassPrimaryFields.qml</file>
+        <file>pass/PassField.qml</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,16 @@
+{
+    "name": "passes.s710",
+    "description": "App for managing tickets, coupons etc in .pkpass format",
+    "architecture": "@CLICK_ARCH@",
+    "title": "Passes",
+    "hooks": {
+        "Passes": {
+            "apparmor": "Passes.apparmor",
+            "desktop":  "Passes.desktop",
+            "content-hub": "Passes.json"
+        }
+    },
+    "version": "1.0.0",
+    "maintainer": "Patrick Fial <mg.m@gmx.net>",
+    "framework" : "@CLICK_FRAMEWORK@"
+}
