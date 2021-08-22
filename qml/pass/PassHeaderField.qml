@@ -5,19 +5,20 @@ Column {
    property color foregroundColor
    property color labelColor
 
+   anchors.verticalCenter: parent.verticalCenter
+   height: childrenRect.height
+
    Text {
-      anchors.left: parent.left
+      anchors.right: parent.right
       text: field.label.toUpperCase()
-      font.pointSize: units.gu(1)
+      font.pointSize: units.gu(0.8)
       color: labelColor
    }
 
    Text {
-      anchors.left: parent.left
+      anchors.right: parent.right
       text: field.value
-      width: parent.width
-      font.pointSize: units.gu(1.5)
+      font.pointSize: units.gu(0.8)
       color: foregroundColor
-      wrapMode: Text.WordWrap
    }
 }

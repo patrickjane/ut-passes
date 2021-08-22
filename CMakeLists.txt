@@ -40,21 +40,6 @@ else()
     )
 endif()
 
-#set(QZXING_MULTIMEDIA ON)
-#set(QZXING_USE_QML ON)
-#add_definitions(
-#  -DENABLE_ENCODER_GENERIC
-#  -DQZXING_QML
-#  -DQZXING_MULTIMEDIA
-#  -DQZXING_LIBRARY
-#  -DZXING_ICONV_CONST
-#  -DDISABLE_LIBRARY_FEATURES
-#  -DENABLE_DECODER_QR_CODE
-#)
-
-#add_subdirectory(submodules/qzxing/src)
-#include_directories(submodules/qzxing/src/zxing)
-
 configure_file(manifest.json.in ${CMAKE_CURRENT_BINARY_DIR}/manifest.json)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/manifest.json DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${PROJECT_NAME}.apparmor DESTINATION ${DATA_DIR})
@@ -63,7 +48,7 @@ install(FILES assets/logo.svg DESTINATION assets)
 
 qt5_add_resources(QT_RESOURCES qml/qml.qrc)
 qt5_add_resources(QT_RESOURCES assets/assets.qrc)
-add_executable(${PROJECT_NAME} main.cpp src/passesmodel.cpp src/pkpass.cpp src/passimageprovider.cpp src/passimageprovider.h ${QT_RESOURCES})
+add_executable(${PROJECT_NAME} main.cpp src/passesmodel.cpp src/pkpass.cpp src/passimageprovider.cpp src/passimageprovider.h src/barcode.cpp src/barcode.h ${QT_RESOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE -s)
 target_link_libraries(${PROJECT_NAME} Qt5::Gui Qt5::Qml Qt5::Quick Qt5::QuickControls2)
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX})
@@ -91,6 +76,9 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${DESKTOP_FILE_NAME} DESTINATION ${DAT
 
 find_package(QuaZip-Qt5)
 target_link_libraries(${PROJECT_NAME} QuaZip::QuaZip)
+
+find_package(ZXing CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} ZXing::Core)
 
 add_subdirectory(po)
 

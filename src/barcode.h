@@ -1,7 +1,7 @@
 // **************************************************************************
-// class PassesModel
+// class BarcodeGenerator
 // 02.07.2021
-// Model for handling locally stored passes managed by this app
+// Generation of barcode images using the zxing library
 // **************************************************************************
 // MIT License
 // Copyright © 2021 Patrick Fial
@@ -19,69 +19,26 @@
 // includes
 // **************************************************************************
 
-#ifndef PASSESMODEL_H
-#define PASSESMODEL_H
+#ifndef BARCODE_H
+#define BARCODE_H
 
-#include <QAbstractListModel>
-#include <QObject>
-#include <QDir>
-
-#include "pkpass.h"
+#include <QImage>
+#include <QString>
 
 // **************************************************************************
-// class PassesModel
+// Barcode
 // **************************************************************************
 
 namespace passes
 {
-   class PassesModel : public QAbstractListModel
+   class BarcodeGenerator
    {
-         enum RoleNames
-         {
-            PassRole = Qt::UserRole + 1
-         };
-
-         Q_OBJECT
-         Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
-
       public:
-         static PassesModel* getInstace() { return instance; }
-
-      public:
-         explicit PassesModel(QObject *parent = nullptr);
-
-         // QAbstractListModel
-
-         QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-         int rowCount(const QModelIndex &parent = QModelIndex()) const;
-         QHash<int, QByteArray> roleNames() const;
-
-         // QML interaction
-
-         Q_INVOKABLE void reload();
-         Q_INVOKABLE bool importPass(const QString& filePath);
-         Q_INVOKABLE bool deletePass(QString id);
-
-         Pass* getPass(QString id) { return mItemMap.count(id) ? mItemMap[id] : nullptr; }
-
-      signals:
-         void error(QString error);
-         void passError(QString error);
-         void countChanged();
+         static bool generate(QString text, QString format, QImage* dest);
 
       private:
-         QString getDataPath() const;
-
-         static PassesModel* instance;
-
-         bool storageReady;
-         Pkpass pkpass;
-
-         std::vector<Pass*> mItems;
-         std::map<QString,Pass*> mItemMap;
-         QDir passesDir;
+         static void stbiWriteFunc(void* context, void* data, int size);
    };
-
 } // namespace passes
 
-#endif // PASSESMODEL_H
+#endif // BARCODE_H

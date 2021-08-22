@@ -17,8 +17,11 @@ MainView {
    applicationName: 'passes.s710'
    automaticOrientation: false
 
-   width: units.gu(45)
-   height: units.gu(75)
+//   width: units.gu(45)
+//   height: units.gu(75)
+
+   width: units.gu(100)
+   height: units.gu(200)
 
    Notification {
       notificationId: "mainNotification"
@@ -87,71 +90,3 @@ MainView {
       pageStack.push(Qt.resolvedUrl("pages/MainPage.qml"), { passesModel: passesModel })
    }
 }
-
-
-
-//MainView {
-//   id: root
-//   objectName: 'mainView'
-//   applicationName: 'passes.s710'
-//   automaticOrientation: true
-
-//   width: units.gu(45)
-//   height: units.gu(75)
-
-//   Notification {
-//      notificationId: "mapPageNotification"
-//   }
-
-//   PassesModel {
-//      id: passesModel
-//   }
-
-//   Page {
-//      anchors.fill: parent
-
-//      header: PageHeader {
-//         id: header
-//         title: i18n.tr('Passes')
-//      }
-
-//      Component.onCompleted: {
-
-//      }
-
-
-
-//      ColumnLayout {
-//         spacing: units.gu(2)
-//         anchors {
-//            margins: units.gu(2)
-//            top: header.bottom
-//            left: parent.left
-//            right: parent.right
-//            bottom: parent.bottom
-//         }
-
-//         Item {
-//            Layout.fillHeight: true
-//         }
-
-//         Label {
-//            id: label
-//            Layout.alignment: Qt.AlignHCenter
-//            text: i18n.tr('Press the button below and check the logs!')
-//         }
-
-//         Button {
-//            Layout.alignment: Qt.AlignHCenter
-//            text: i18n.tr('Press here!')
-//            onClicked: Example.speak()
-//         }
-
-//         Item {
-//            Layout.fillHeight: true
-//         }
-//      }
-
-
-//   }
-//}

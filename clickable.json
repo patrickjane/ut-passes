@@ -6,12 +6,14 @@
     "run": [
       "wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -",
       "apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main'",
+      "add-apt-repository ppa:ubuntu-toolchain-r/test",
       "apt-get update",
       "apt-get install -y cmake"
     ]
   },
   "install_lib": [
-    "${QUAZIP_LIB_INSTALL_DIR}/lib/*.so*"
+    "${QUAZIP_LIB_INSTALL_DIR}/lib/*.so*",
+    "${ZXING_CPP_LIB_INSTALL_DIR}/lib/*.so*"
   ],
   "libraries": {
     "quazip": {
@@ -21,6 +23,19 @@
         "run": [
           "wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -",
           "apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main'",
+          "apt-get update",
+          "apt-get install -y cmake"
+        ]
+      }
+    },
+    "zxing-cpp": {
+      "builder": "cmake",
+      "build_args": [],
+      "image_setup": {
+        "run": [
+          "wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -",
+          "apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main'",
+          "add-apt-repository ppa:ubuntu-toolchain-r/test",
           "apt-get update",
           "apt-get install -y cmake"
         ]

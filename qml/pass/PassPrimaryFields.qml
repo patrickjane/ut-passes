@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtGraphicalEffects 1.0
 
 Item {
    id: fields
@@ -37,11 +38,19 @@ Item {
    }
 
    Image {
+      id: airplaneImage
       anchors.centerIn: parent
       width: units.gu(5)
       height: units.gu(5)
       source: "qrc:///airplane-flying.png"
       visible: fields.style === "boardingPass"
+   }
+
+   ColorOverlay {
+       anchors.fill: airplaneImage
+       source: airplaneImage
+       color: fields.foregroundColor
+       visible: fields.style === "boardingPass"
    }
 
    Image {
@@ -58,7 +67,6 @@ Item {
       height: childrenRect.height
 
       Text {
-//         width: parent.width
          visible: fields.primaryFields.length >= 2
          text: (fields.primaryFields.length >= 2 && primaryFields[1].label || "").toUpperCase()
          wrapMode: Text.WordWrap
@@ -67,7 +75,6 @@ Item {
       }
 
       Text {
-         //width: parent.width
          visible: fields.primaryFields.length >= 2
          text: fields.primaryFields.length >= 2 && primaryFields[1].value || ""
          wrapMode: Text.WordWrap

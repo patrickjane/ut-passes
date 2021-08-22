@@ -9,5 +9,12 @@
         <file>colors/qmldir</file>
         <file>pass/PassPrimaryFields.qml</file>
         <file>pass/PassField.qml</file>
+        <file>pass/CardFront.qml</file>
+        <file>pass/CardBack.qml</file>
+        <file>pass/Card.qml</file>
+        <file>pass/PassesView.qml</file>
+        <file>pages/ImportPage.qml</file>
+        <file>pass/PassHeaderField.qml</file>
+        <file>pass/PassBarcode.qml</file>
     </qresource>
 </RCC>

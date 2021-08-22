@@ -33,7 +33,8 @@ namespace passes
    class PassImageProvider : public QQuickImageProvider
    {
       public:
-         PassImageProvider();
+         PassImageProvider()
+            : QQuickImageProvider(QQuickImageProvider::Image) {}
 
          QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize) override;
    };

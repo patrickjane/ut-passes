@@ -51,6 +51,7 @@ namespace passes
          QString message;
          QString encoding;
          QString altText;
+         QImage image;
 
          explicit operator QVariant() const
          {
@@ -84,8 +85,9 @@ namespace passes
          QString expirationDate;
          QString relevantDate;
          bool voided;
+         bool expired;
 
-         QList<Barcode> barcodes;
+         Barcode barcode;
          QString backgroundColor;
          QString foregroundColor;
          QString labelColor;
@@ -99,19 +101,13 @@ namespace passes
             m.insert("expirationDate", expirationDate);
             m.insert("relevantDate", relevantDate);
             m.insert("voided", voided);
+            m.insert("expired", expired);
             m.insert("backgroundColor", backgroundColor);
             m.insert("foregroundColor", foregroundColor);
             m.insert("labelColor", labelColor);
             m.insert("logoText", logoText);
             m.insert("organization", organization);
-
-            QVariantList codes;
-
-            for (const auto& barcode : barcodes)
-               codes << static_cast<QVariant>(barcode);
-
-            m.insert("barcodes", codes);
-
+            m.insert("barcode", static_cast<QVariant>(barcode));
             return m;
          }
    };
@@ -232,7 +228,7 @@ namespace passes
       protected:
          bool readPass(Pass* pass, QuaZip& archive);
          bool readImages(Pass* pass, QuaZip& archive, const QStringList& archiveContents);
-         bool readImage(QImage* dest, QuaZip& archive, const QStringList& archiveContents, QString fileName2x, QString fileName);
+         bool readImage(QImage* dest, QuaZip& archive, const QStringList& archiveContents, QString imageName);
          bool readLocalization(Pass* pass, QuaZip& archive, const QStringList& archiveContents);
          bool readLocalization(Pass* pass, QuaZip& archive, const QString& localization);
 

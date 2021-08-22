@@ -26,6 +26,7 @@
 #include <QJsonArray>
 
 #include "quazip/quazipfile.h"
+#include "barcode.h"
 
 namespace C {
 #include <libintl.h>
@@ -70,15 +71,9 @@ namespace passes
 
       if (res) res = readLocalization(pass, archive, archiveContents);
 
-      qDebug() << "READ pass localization: " << res;
-
       res = readPass(pass, archive);
 
-      qDebug() << "READ pass basic: " << res;
-
       if (res) res = readImages(pass, archive, archiveContents);
-
-      qDebug() << "READ pass images: " << res;
 
       archive.close();
       return pass;
@@ -137,7 +132,15 @@ namespace passes
          pass->standard.relevantDate = object["relevantDate"].toString();
 
       if (object.contains("expirationDate"))
+      {
          pass->standard.expirationDate = object["expirationDate"].toString();
+         QDateTime dt = QDateTime::fromString(pass->standard.expirationDate, Qt::ISODate);
+
+         if (QDateTime::currentDateTime().secsTo(dt) <= 0)
+            pass->standard.expired = true;
+         else
+            pass->standard.expired = true;
+      }
 
       if (object.contains("voided"))
          pass->standard.voided = object["voided"].toBool();
@@ -157,15 +160,14 @@ namespace passes
          translate(pass->standard.logoText);
       }
 
+      // only ever pick 1 barcode.
+
       if (object.contains("barcode"))
          readPassBarcode(pass, object["barcode"].toObject());
-
-      if (object.contains("barcodes"))
+      else if (object.contains("barcodes"))
       {
          auto barcodes = object["barcodes"].toArray();
-
-         for (auto barcode : barcodes)
-            readPassBarcode(pass, barcode.toObject());
+         readPassBarcode(pass, barcodes[0].toObject());
       }
    }
 
@@ -183,7 +185,12 @@ namespace passes
       QString encoding = object.contains("encoding") ? object["encoding"].toString() : QString();
       QString altText = object.contains("altText") ? object["altText"].toString() : QString();
 
-      pass->standard.barcodes.push_back(Barcode{ format, message, encoding, altText });
+      pass->standard.barcode.format = format;
+      pass->standard.barcode.message = message;
+      pass->standard.barcode.encoding = encoding;
+      pass->standard.barcode.altText = altText;
+
+      return BarcodeGenerator::generate(message, format, &pass->standard.barcode.image);
    }
 
    // **************************************************************************
@@ -257,7 +264,7 @@ namespace passes
 
          if (object.contains("dateStyle") || object.contains("timeStyle"))
          {
-            QDateTime dt = QDateTime::fromString(value, Qt::ISODate);
+            QDateTime dt = QDateTime::fromString(value, Qt::ISODate).toLocalTime();
 
             if (dt.isValid())
             {
@@ -267,18 +274,17 @@ namespace passes
                    && object["dateStyle"] != "PKDateStyleNone"
                    && object["timeStyle"] != "PKDateStyleNone")
                {
-
                   if (object["dateStyle"] == "PKDateStyleShort")
                      format = QLocale::system().dateTimeFormat(QLocale::ShortFormat);
                   else
-                     format = QLocale::system().dateTimeFormat(QLocale::LongFormat);
+                     format = "dddd, " + QLocale::system().dateTimeFormat(QLocale::ShortFormat);
                }
                else if (object.contains("timeStyle") && object["timeStyle"] != "PKDateStyleNone")
                {
                   if (object["timeStyle"] == "PKDateStyleShort")
                      format = QLocale::system().timeFormat(QLocale::ShortFormat);
                   else
-                     format = QLocale::system().timeFormat(QLocale::LongFormat);
+                     format = QLocale::system().timeFormat(QLocale::ShortFormat);
                }
                else if (object.contains("dateStyle") && object["dateStyle"] != "PKDateStyleNone")
                {
@@ -305,12 +311,12 @@ namespace passes
    {
       bool res = true;
 
-      if (res) res = readImage(&pass->imgBackground, archive, archiveContents, "background@2x.png", "background.png");
-      if (res) res = readImage(&pass->imgFooter,     archive, archiveContents, "footer@2x.png",     "footer.png");
-      if (res) res = readImage(&pass->imgIcon,       archive, archiveContents, "icon@2x.png",       "icon.png");
-      if (res) res = readImage(&pass->imgLogo,       archive, archiveContents, "logo@2x.png",       "logo.png");
-      if (res) res = readImage(&pass->imgStrip,      archive, archiveContents, "strip@2x.png",      "strip.png");
-      if (res) res = readImage(&pass->imgThumbnail,  archive, archiveContents, "thumbnail@2x.png",  "thumbnail.png");
+      if (res) res = readImage(&pass->imgBackground, archive, archiveContents, "background");
+      if (res) res = readImage(&pass->imgFooter,     archive, archiveContents, "footer");
+      if (res) res = readImage(&pass->imgIcon,       archive, archiveContents, "icon");
+      if (res) res = readImage(&pass->imgLogo,       archive, archiveContents, "logo");
+      if (res) res = readImage(&pass->imgStrip,      archive, archiveContents, "strip");
+      if (res) res = readImage(&pass->imgThumbnail,  archive, archiveContents, "thumbnail");
 
       return res;
    }
@@ -319,22 +325,28 @@ namespace passes
    // readImage
    // **************************************************************************
 
-   bool Pkpass::readImage(QImage* dest, QuaZip& archive, const QStringList& archiveContents, QString fileName2x, QString fileName)
+   bool Pkpass::readImage(QImage* dest, QuaZip& archive, const QStringList& archiveContents, QString imageName)
    {
-      QString fn = archiveContents.contains(fileName2x) ? fileName2x : fileName;
+      static QStringList extensions{ "@3x.png", "@2x.png", ".png" };
 
-      if (!archiveContents.contains(fn))
-        return true;
+      bool res = true;
 
-      archive.setCurrentFile(fn);
+      foreach (const QString ext, extensions)
+      {
+         if (!archiveContents.contains(imageName + ext))
+            continue;
 
-      QuaZipFile file(&archive);
+         archive.setCurrentFile(imageName + ext);
 
-      file.open(QIODevice::ReadOnly);
+         QuaZipFile file(&archive);
 
-      bool res = dest->loadFromData(file.readAll());
+         file.open(QIODevice::ReadOnly);
 
-      file.close();
+         res = dest->loadFromData(file.readAll());
+
+         file.close();
+         break;
+      }
 
       return res;
    }
@@ -346,7 +358,7 @@ namespace passes
    bool Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QStringList& archiveContents)
    {
       QString localizationLocale = QLocale::system().name().mid(0, 2) + ".lproj/pass.strings";
-      QString localizationEnglish = "en.lproj/pass.strings";
+      static QString localizationEnglish = "en.lproj/pass.strings";
 
       currentTranslation.clear();
 

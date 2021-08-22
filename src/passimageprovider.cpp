@@ -30,36 +30,22 @@
 
 namespace passes
 {
-   PassImageProvider::PassImageProvider()
-      : QQuickImageProvider(QQuickImageProvider::Image)
-   {
-   }
-
-   QImage PassImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
+   QImage PassImageProvider::requestImage(const QString &id, QSize* /*size*/, const QSize& /*requestedSize*/)
    {
       PassesModel* model = PassesModel::getInstace();
 
       if (!model)
-      {
-         qDebug() << "MODEL UNAVAILABLE";
          return QImage();
-      }
 
       QStringList comps = id.split("/");
 
       if (comps.size() != 2)
-      {
-         qDebug() << "INVALID IMAGE queried: " << id;
          return QImage();
-      }
 
       Pass* pass = model->getPass(comps[0]);
 
       if (!pass)
-      {
-         qDebug() << "UNKNOWN PASS " << comps[0];
          return QImage();
-      }
 
       if (comps[1] == "background") return pass->imgBackground;
       if (comps[1] == "footer")     return pass->imgFooter;
@@ -67,8 +53,8 @@ namespace passes
       if (comps[1] == "logo")       return pass->imgLogo;
       if (comps[1] == "strip")      return pass->imgStrip;
       if (comps[1] == "thumbnail")  return pass->imgThumbnail;
+      if (comps[1] == "barcode")    return pass->standard.barcode.image;
 
-      qDebug() << "Unknown image type  " << comps[1] << " requested";
       return QImage();
    }
 
