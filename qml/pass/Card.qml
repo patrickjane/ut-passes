@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtGraphicalEffects 1.10
 
 Flipable {
    id: flipable
@@ -9,6 +10,7 @@ Flipable {
    signal cardBackClicked()
 
    front: CardFront {
+      id: frontCard
       anchors.fill: parent
       pass: flipable.pass
       selected: flipable.selected
@@ -18,11 +20,34 @@ Flipable {
    }
 
    back: CardBack {
+      id: backCard
       anchors.fill: parent
       pass: flipable.pass
       onBackButtonPressed: flipable.flipped = !flipable.flipped
-      onCardClicked:  { emit: cardFrontClicked() }
+      onCardClicked:  { emit: cardBackClicked() }
    }
+
+//   DropShadow {
+//      anchors.fill: frontCard
+//      horizontalOffset: units.gu(1)
+//      verticalOffset: units.gu(1)
+//      radius: units.gu(1.5)
+//      samples: 17
+//      color: "#80000000"
+//      source: frontCard
+//      visible: flipable.selected && !flipable.flipped
+//   }
+
+//   DropShadow {
+//      anchors.fill: backCard
+//      horizontalOffset: units.gu(1)
+//      verticalOffset: units.gu(1)
+//      radius: units.gu(1.5)
+//      samples: 17
+//      color: "#80000000"
+//      source: frontCard
+//      visible: flipable.selected && flipable.flipped
+//   }
 
    transform: Rotation {
        id: rotation

@@ -1,12 +1,32 @@
-import QtQuick 2.0
+import QtQuick 2.4
 
 Rectangle {
    id: view
    property var model
    property var selectedCard
    property var cards: []
+   property double cardHeight: height*0.85
+   property double cardWidth: width*0.85
+   property double topMargin: (height-cardHeight)/2
 
-   color: !!selectedCard ? "white" : "#dedede"
+   color: "#dedede"
+
+   states: [
+      State {
+         name: "noCardShown"
+         PropertyChanges { target: view; color: "#dedede"  }
+      },
+      State {
+         name: "cardShown"
+         PropertyChanges { target: view; color: "white" }
+      }
+   ]
+
+   transitions: [
+      Transition {
+         PropertyAnimation { properties: "color"; duration: 100 }
+      }
+   ]
 
    Connections {
       target: model
@@ -14,65 +34,63 @@ Rectangle {
       onRowsAboutToBeRemoved: cards.splice(first, 1)
    }
 
-   Repeater {
-      id: repeater
-      model: view.model
+   Flickable {
+      id: flickable
+      anchors.fill: parent
+      contentHeight: childrenRect.height
+      contentWidth: parent.width
 
-      Card {
-         id: card
-         property int index
-         property var topAnchor
+      Repeater {
+         id: repeater
+         model: view.model
 
-         width: parent.width * 0.9
-         height: parent.height * 0.7
+         Card {
+            id: card
+            property int index
 
-         anchors.horizontalCenter: parent.horizontalCenter
-         anchors.top: parent.top
-         anchors.topMargin: units.gu(8)
+            width: view.cardWidth
+            height: view.cardHeight
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: view.topMargin + index*units.gu(8)
 
-         pass: modelData
+            pass: modelData
 
-         onCardFrontClicked: showCard(index)
-       }
-
-      onItemAdded: {
-         console.log("Item added: ", index, "num cards now:", cards.length)
-
-         var lastCard = view.cards.length && view.cards[view.cards.length - 1]
-
-         if (lastCard) {
-            item.anchors.top = lastCard.top
-            item.topAnchor = lastCard.top
+            onCardFrontClicked: showCard(index)
          }
 
-         item.index = index
-         cards.push(item)
+         onItemAdded: {
+            item.index = index
+            cards.push(item)
+         }
       }
    }
 
    function showCard(index) {
+      view.state = "cardShown"
+
       view.cards.forEach(function(card) {
          if (card.index === index) {
-            card.anchors.top = card.parent.top
+            card.anchors.topMargin = view.topMargin
             card.selected = true
             view.selectedCard = card
-         } else
-            card.anchors.top = view.bottom
+         } else {
+            card.visible = false
+         }
       })
    }
 
    function dismissCard() {
-      if (!view.selectedCard)
+      if (!view.selectedCard || !view.cards.length)
          return
 
+      view.state = "noCardShown"
       view.selectedCard.unflip()
 
-      var lastCard
-
       view.cards.forEach(function(card) {
-         card.anchors.top = lastCard ? lastCard.top : card.parent.top
          card.selected = false
-         lastCard = card
+         card.visible = true
+         card.anchors.topMargin = view.topMargin + card.index*units.gu(8)
       })
 
       view.selectedCard = undefined

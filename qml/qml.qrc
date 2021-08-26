@@ -16,5 +16,6 @@
         <file>pages/ImportPage.qml</file>
         <file>pass/PassHeaderField.qml</file>
         <file>pass/PassBarcode.qml</file>
+        <file>pages/SharePage.qml</file>
     </qresource>
 </RCC>

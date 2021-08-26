@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: passes.s710\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-08-13 13:08+0000\n"
+"POT-Creation-Date: 2021-08-26 13:44+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,30 +17,59 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../qml/Main.qml:30
+#: ../qml/Main.qml:33
 msgid "Error"
 msgstr ""
 
-#: ../qml/Main.qml:31
+#: ../qml/Main.qml:34
 msgid "Pass Error"
 msgstr ""
 
-#: ../qml/Main.qml:53
+#: ../qml/Main.qml:56
 msgid "Add pass"
 msgstr ""
 
-#: ../qml/Main.qml:54
+#: ../qml/Main.qml:57
 msgid "Do you want to add '%1' to Passes?"
 msgstr ""
 
-#: ../qml/Main.qml:61
+#: ../qml/Main.qml:64
 msgid "Add"
 msgstr ""
 
-#: ../qml/Main.qml:69
+#: ../qml/Main.qml:72 ../qml/pages/MainPage.qml:128
 msgid "Cancel"
+msgstr ""
+
+#: ../qml/pages/ImportPage.qml:13
+msgid "Import pass"
 msgstr ""
 
 #: ../qml/pages/MainPage.qml:23 Passes.desktop.in.h:1
 msgid "Passes"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:94
+msgid "No passes have been added yet"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:113
+msgid "Delete pass"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:114
+msgid ""
+"Do you want to delete the pass from Passes? This operation cannot be undone."
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:120
+msgid "Delete"
+msgstr ""
+
+#: ../qml/pages/SharePage.qml:11
+msgid "Share pass"
+msgstr ""
+
+#: ../qml/pass/PassBarcode.qml:33
+msgid "This card has expired"
 msgstr ""

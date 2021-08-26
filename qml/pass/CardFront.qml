@@ -24,6 +24,7 @@ Rectangle {
       anchors.left: parent.left
       anchors.leftMargin: units.gu(2)
       anchors.top: parent.top
+      anchors.topMargin: 1
 
       height: units.gu(7)
       width: parent.width - units.gu(2)
@@ -44,6 +45,7 @@ Rectangle {
 
       Image {
          anchors.left: parent.left
+         anchors.leftMargin: units.gu(1.5)
          anchors.verticalCenter: parent.verticalCenter
          height: units.gu(7)
          fillMode: Image.PreserveAspectFit

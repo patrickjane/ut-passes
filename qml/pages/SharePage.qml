@@ -5,12 +5,10 @@ import Ubuntu.Content 1.3
 Page {
    id: picker
    property var activeTransfer
-   property var url
-
-   signal imported(string fileUrl)
+   property string url
 
    header: PageHeader {
-      title: i18n.tr("Import pass")
+      title: i18n.tr("Share pass")
    }
 
    ContentPeerPicker {
@@ -18,23 +16,20 @@ Page {
       anchors.topMargin: picker.header.height
 
       showTitle: false
-      contentType: ContentType.Documents
-      handler: ContentHandler.Source
+      contentType: ContentType.All
+      handler: ContentHandler.Share
 
       onPeerSelected: {
          peer.selectionType = ContentTransfer.Single
          picker.activeTransfer = peer.request()
+
          picker.activeTransfer.stateChanged.connect(function() {
             if (!picker.activeTransfer)
                return
 
             if (picker.activeTransfer.state === ContentTransfer.InProgress) {
-               picker.activeTransfer.items = picker.activeTransfer.items[0].url = url;
+               picker.activeTransfer.items = [ resultComponent.createObject(parent, {"url": url}) ];
                picker.activeTransfer.state = ContentTransfer.Charged;
-            }
-            if (picker.activeTransfer.state === ContentTransfer.Charged) {
-               picker.imported(picker.activeTransfer.items[0].url)
-               picker.activeTransfer = null
                pageStack.pop()
             }
          })

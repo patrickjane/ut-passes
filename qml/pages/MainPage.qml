@@ -32,6 +32,18 @@ Page {
             }
          },
          Action {
+            iconName: "share"
+            visible: !!passesView.selectedCard
+            onTriggered: {
+               var passFile = passesView.selectedCard.pass.filePath
+
+               if (passFile)
+                  pageStack.push(Qt.resolvedUrl("SharePage.qml"), { url: "file://" + passFile })
+               else
+                  console.log("No filepath for pass", passesView.selectedCard.pass.id)
+            }
+         },
+         Action {
             iconName: "close"
             visible: !!passesView.selectedCard
             onTriggered: passesView.dismissCard()

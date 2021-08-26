@@ -151,6 +151,7 @@ namespace passes
 
          pass->id = info.baseName();
          pass->modified = info.lastModified();
+         pass->filePath = info.absoluteFilePath();
 
          mItemMap[pass->id] = pass;
 

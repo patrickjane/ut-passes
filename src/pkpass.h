@@ -187,7 +187,6 @@ namespace passes
    {
          QString id;
          QDateTime modified;
-
          QString filePath;
 
          Standard standard;
@@ -204,6 +203,8 @@ namespace passes
          {
             QVariantMap m;
             m.insert("id", id);
+            m.insert("modified", modified);
+            m.insert("filePath", filePath);
             m.insert("standard", static_cast<QVariant>(standard));
             m.insert("details", static_cast<QVariant>(details));
 
