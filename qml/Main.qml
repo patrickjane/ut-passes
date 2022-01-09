@@ -8,6 +8,8 @@ import Ubuntu.Content 1.1
 import Ubuntu.Components.Popups 1.3
 
 import "./notify"
+import "./util"
+import "./pages"
 
 import PassesModel 1.0
 
@@ -17,11 +19,11 @@ MainView {
    applicationName: 'passes.s710'
    automaticOrientation: false
 
-//   width: units.gu(45)
-//   height: units.gu(75)
+   width: units.gu(45)
+   height: units.gu(75)
 
-   width: units.gu(100)
-   height: units.gu(200)
+//   width: units.gu(100)
+//   height: units.gu(200)
 
    Notification {
       notificationId: "mainNotification"
@@ -31,7 +33,18 @@ MainView {
       id: passesModel
 
       onError: Notify.error(i18n.tr("Error"), error)
-      onPassError: Notify.error(i18n.tr("Pass Error"), error)
+
+      onFailedPasses: {
+         console.log(JSON.stringify(passes))
+
+         passes.forEach(function(pass) {
+            var popup = Dialogs.invalidPassDialog(root, pass.filePath, pass.error)
+
+            popup.accepted.connect(function() {
+               passesModel.deletePass(filePath)
+            })
+         })
+      }
    }
 
    Connections {
@@ -40,41 +53,11 @@ MainView {
       onImportRequested: {
          var filePath = String(transfer.items[0].url).replace('file://', '')
          var fileName = filePath.split("/").pop();
-         var popup = PopupUtils.open(addQuestion, root, {fileName: fileName});
+         var popup = Dialogs.addDialog(root, fileName) // PopupUtils.open(addDialogComponent, root, {fileName: fileName});
 
          popup.accepted.connect(function() {
             passesModel.importPass(filePath)
          })
-      }
-   }
-
-   Component {
-      id: addQuestion
-
-      Dialog {
-         id: addQuestionDialog
-         title: i18n.tr("Add pass")
-         text: i18n.tr("Do you want to add '%1' to Passes?").arg(fileName)
-
-         property string fileName
-         signal accepted();
-         signal rejected();
-
-         Button {
-            text: i18n.tr("Add")
-            color: UbuntuColors.green
-            onClicked: {
-               addQuestionDialog.accepted()
-               PopupUtils.close(addQuestionDialog)
-            }
-         }
-         Button {
-            text: i18n.tr("Cancel")
-            onClicked: {
-               addQuestionDialog.rejected()
-               PopupUtils.close(addQuestionDialog)
-            }
-         }
       }
    }
 
@@ -83,10 +66,17 @@ MainView {
       anchors {
          fill: parent
       }
-   }
 
-   Component.onCompleted: {
-      passesModel.reload()
-      pageStack.push(Qt.resolvedUrl("pages/MainPage.qml"), { passesModel: passesModel })
+      Component.onCompleted: {
+         push(mainPage)
+
+         passesModel.init()
+         passesModel.reload()
+      }
+
+      MainPage {
+         id: mainPage
+         passesModel: passesModel
+      }
    }
 }

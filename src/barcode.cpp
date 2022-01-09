@@ -34,13 +34,17 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "thirdparty/stb_image_write.h"
 
+namespace C {
+#include <libintl.h>
+}
+
 namespace passes
 {
    // **************************************************************************
    // class BarcodeGenerator
    // **************************************************************************
 
-   bool BarcodeGenerator::generate(QString text, QString fmt, QImage* dest)
+   QString BarcodeGenerator::generate(QString text, QString fmt, QImage* dest)
    {
       using namespace ZXing;
 
@@ -59,10 +63,7 @@ namespace passes
       else if (fmt == "PKBarcodeFormatCode128")
          format = BarcodeFormat::CODE_128;
       else
-      {
-
-         return false;
-      }
+         return QString(C::gettext("Unknown barcode format")) + " (" + fmt + ")";
 
       MultiFormatWriter writer(format);
       if (margin >= 0)
@@ -72,17 +73,12 @@ namespace passes
 
       auto bitmap = writer.encode(TextUtfEncoding::FromUtf8(text.toUtf8().constData()), width, height).toByteMatrix();
 
-      //auto writer = MultiFormatWriter(format).setMargin(margin).setEncoding(encoding).setEccLevel(eccLevel);
-      //auto bitmap = ToMatrix<uint8_t>(writer.encode(TextUtfEncoding::FromUtf8(text.toUtf8().constData()), width, height));
-
       QByteArray dataArray;
 
       int res = stbi_write_png_to_func(&BarcodeGenerator::stbiWriteFunc, &dataArray, bitmap.width(), bitmap.height(), 1, bitmap.data(), 0);
 
-      qDebug() << "generated image with " << dataArray.size() << " bytes res: " << res;
-
       dest->loadFromData(dataArray);
-      return true;
+      return "";
    }
 
    void BarcodeGenerator::stbiWriteFunc(void* context, void* data, int size)

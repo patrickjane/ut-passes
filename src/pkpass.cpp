@@ -38,9 +38,15 @@ namespace passes
    // class PkpassParser
    // **************************************************************************
 
-   Pass* Pkpass::openPass(QString filePath)
+   Pkpass::Pkpass()
+      : trailingCommaRegEx1(",[\\s\r\n]*\\]"), trailingCommaRegEx2(",[\\s\r\n]*\\}")
    {
-      Pass* pass = nullptr;
+   }
+
+
+   PassResult Pkpass::openPass(QString filePath)
+   {
+      Pass* pass = new Pass();
       currentTranslation.clear();
 
       qDebug() << "OPEN PASS: " << filePath;
@@ -50,77 +56,110 @@ namespace passes
       bool res = archive.open(QuaZip::mdUnzip);
 
       if (!res)
-      {
-         qDebug() << "Failed to open pass: " << archive.getZipError();
-
-         emit error(QString(archive.getZipError()));
-         return pass;
-      }
+         return { pass, QString(archive.getZipError()) };
 
       auto archiveContents = archive.getFileNameList();
 
       if (!archiveContents.contains(filePassJson))
-      {
-         qDebug() << "Failed to open pass: no pass.json found";
+         return { pass, C::gettext("Archive does not contain a valid pass") };
 
-         emit error(C::gettext("Archive does not contain a valid pass"));
-         return pass;
-      }
+      QString err = readLocalization(pass, archive, archiveContents);
 
-      pass = new Pass();
-
-      if (res) res = readLocalization(pass, archive, archiveContents);
-
-      res = readPass(pass, archive);
-
-      if (res) res = readImages(pass, archive, archiveContents);
+      if (err.isEmpty()) err = readPass(pass, archive);
+      if (err.isEmpty()) err = readImages(pass, archive, archiveContents);
 
       archive.close();
-      return pass;
+      return { pass, err };
    }
 
    // **************************************************************************
    // readPassJson
    // **************************************************************************
 
-   bool Pkpass::readPass(Pass* pass, QuaZip& archive)
+   QString Pkpass::readPass(Pass* pass, QuaZip& archive)
    {
       archive.setCurrentFile(filePassJson);
 
+      QString err;
       QuaZipFile file(&archive);
 
       file.open(QIODevice::ReadOnly);
 
       auto contents = file.readAll();
-      auto doc = QJsonDocument::fromJson(contents);
+      auto doc = readPassDocument(contents, err);
 
       file.close();
 
+      if (!err.isEmpty())
+         return err;
+
       if (doc.isNull() || !doc.isObject() || doc.object().isEmpty())
-      {
-         emit error(C::gettext("Pass information is invalid (empty)"));
-         return false;
-      }
+         return C::gettext("Pass information is invalid (empty)");
 
       auto root = doc.object();
 
-      readPassStandard(pass, root);
-      readPassStyle(pass, root);
+      err = readPassStandard(pass, root);
 
-      return true;
+      if (err.isEmpty()) err = readPassStyle(pass, root);
+
+      return err;
+   }
+
+   // **************************************************************************
+   // readPassDocument
+   // **************************************************************************
+
+   QJsonDocument Pkpass::readPassDocument(const QByteArray& data, QString& err)
+   {
+      // fix trailing commas, remove special characters
+
+      QString stringData = QString::fromUtf8(data)
+            .replace('\t', "")
+            .replace('\n', "")
+            .replace('\r', "")
+            .replace(trailingCommaRegEx1, "]")
+            .replace(trailingCommaRegEx2, "}");
+
+      // remove garbage at end of JSON
+
+      stringData.remove(stringData.lastIndexOf('}')+1, stringData.length()+1);
+
+      QJsonParseError jsonErr;
+      auto doc = QJsonDocument::fromJson(stringData.toUtf8(), &jsonErr);
+
+      if (jsonErr.error == QJsonParseError::NoError)
+         return doc;
+
+      // try UTF-32 (e.g. subway card uses this)
+      // fix trailing commas, remove special characters
+
+      auto utf32String = QString::fromUcs4((const uint*)data.data())
+            .replace('\t', "")
+            .replace('\n', "")
+            .replace('\r', "")
+            .replace(trailingCommaRegEx1, "]")
+            .replace(trailingCommaRegEx2, "}");
+
+      // remove garbage at end of JSON
+
+      utf32String.remove(utf32String.lastIndexOf('}')+1, utf32String.length()+1);
+
+      doc = QJsonDocument::fromJson(utf32String.toUtf8(), &jsonErr);
+
+      if (jsonErr.error != QJsonParseError::NoError)
+         err = QString(C::gettext("Pass information is invalid")) + " (" + jsonErr.errorString() + ")";
+
+      return doc;
    }
 
    // **************************************************************************
    // readPassStandard
    // **************************************************************************
 
-   bool Pkpass::readPassStandard(Pass* pass, QJsonObject& object)
+   QString Pkpass::readPassStandard(Pass* pass, QJsonObject& object)
    {
       if (!object.contains("description") || !object.contains("organizationName"))
-      {
-         emit error(C::gettext("Pass information is invalid (missing description/organization key(s))"));
-         return false;
-      }
+         return C::gettext("Pass information is invalid (missing description/organization key(s))");
 
       pass->standard.description = object["description"].toString();
       pass->standard.organization = object["organizationName"].toString();
@@ -163,22 +202,25 @@ namespace passes
       // only ever pick 1 barcode.
 
       if (object.contains("barcode"))
-         readPassBarcode(pass, object["barcode"].toObject());
-      else if (object.contains("barcodes"))
+         return readPassBarcode(pass, object["barcode"].toObject());
+
+      if (object.contains("barcodes"))
       {
          auto barcodes = object["barcodes"].toArray();
-         readPassBarcode(pass, barcodes[0].toObject());
+         return readPassBarcode(pass, barcodes[0].toObject());
       }
+
+      return "";
    }
 
    // **************************************************************************
    // readPassBarcode
    // **************************************************************************
 
-   bool Pkpass::readPassBarcode(Pass* pass, QJsonObject object)
+   QString Pkpass::readPassBarcode(Pass* pass, QJsonObject object)
    {
       if (object.isEmpty() || !object.contains("format") || !object.contains("message"))
-         return false;
+         return C::gettext("Pass contains invalid/incomplete barcode information");
 
       QString format = object["format"].toString();
       QString message = object["message"].toString();
@@ -197,8 +239,9 @@ namespace passes
    // readPassStyle
    // **************************************************************************
 
-   bool Pkpass::readPassStyle(Pass* pass, QJsonObject object)
+   QString Pkpass::readPassStyle(Pass* pass, QJsonObject object)
    {
+      QString err;
       QJsonObject styleObject;
 
       if (object.contains("boardingPass"))
@@ -228,28 +271,34 @@ namespace passes
       }
 
       if (styleObject.isEmpty())
-         return false;
+         return err;
 
       if (styleObject.contains("headerFields"))
-         readPassStyleFields(pass->details.headerFields, styleObject["headerFields"].toArray());
-      if (styleObject.contains("primaryFields"))
-         readPassStyleFields(pass->details.primaryFields, styleObject["primaryFields"].toArray());
-      if (styleObject.contains("secondaryFields"))
-         readPassStyleFields(pass->details.secondaryFields, styleObject["secondaryFields"].toArray());
-      if (styleObject.contains("auxiliaryFields"))
-         readPassStyleFields(pass->details.auxiliaryFields, styleObject["auxiliaryFields"].toArray());
-      if (styleObject.contains("backFields"))
-         readPassStyleFields(pass->details.backFields, styleObject["backFields"].toArray());
+         err = readPassStyleFields(pass->details.headerFields, styleObject["headerFields"].toArray());
+
+      if (err.isEmpty() && styleObject.contains("primaryFields"))
+         err = readPassStyleFields(pass->details.primaryFields, styleObject["primaryFields"].toArray());
+
+      if (err.isEmpty() && styleObject.contains("secondaryFields"))
+         err = readPassStyleFields(pass->details.secondaryFields, styleObject["secondaryFields"].toArray());
+
+      if (err.isEmpty() && styleObject.contains("auxiliaryFields"))
+         err = readPassStyleFields(pass->details.auxiliaryFields, styleObject["auxiliaryFields"].toArray());
+
+      if (err.isEmpty() && styleObject.contains("backFields"))
+         err = readPassStyleFields(pass->details.backFields, styleObject["backFields"].toArray());
+
+      return err;
    }
 
    // **************************************************************************
    // readPassStyleFields
    // **************************************************************************
 
-   bool Pkpass::readPassStyleFields(QList<PassStyleField>& fields, QJsonArray jsonFields)
+   QString Pkpass::readPassStyleFields(QList<PassStyleField>& fields, QJsonArray jsonFields)
    {
       if (jsonFields.isEmpty())
-         return false;
+         return C::gettext("Pass contains invalid/incomplete fields");
 
       for (auto v : jsonFields)
       {
@@ -301,31 +350,33 @@ namespace passes
 
          fields << PassStyleField{ translate(key), translate(value), translate(label) };
       }
+
+      return "";
    }
 
    // **************************************************************************
    // readImages
    // **************************************************************************
 
-   bool Pkpass::readImages(Pass* pass, QuaZip& archive, const QStringList& archiveContents)
+   QString Pkpass::readImages(Pass* pass, QuaZip& archive, const QStringList& archiveContents)
    {
-      bool res = true;
+      QString err;
 
-      if (res) res = readImage(&pass->imgBackground, archive, archiveContents, "background");
-      if (res) res = readImage(&pass->imgFooter,     archive, archiveContents, "footer");
-      if (res) res = readImage(&pass->imgIcon,       archive, archiveContents, "icon");
-      if (res) res = readImage(&pass->imgLogo,       archive, archiveContents, "logo");
-      if (res) res = readImage(&pass->imgStrip,      archive, archiveContents, "strip");
-      if (res) res = readImage(&pass->imgThumbnail,  archive, archiveContents, "thumbnail");
+      if (err.isEmpty()) err = readImage(&pass->imgBackground, archive, archiveContents, "background");
+      if (err.isEmpty()) err = readImage(&pass->imgFooter,     archive, archiveContents, "footer");
+      if (err.isEmpty()) err = readImage(&pass->imgIcon,       archive, archiveContents, "icon");
+      if (err.isEmpty()) err = readImage(&pass->imgLogo,       archive, archiveContents, "logo");
+      if (err.isEmpty()) err = readImage(&pass->imgStrip,      archive, archiveContents, "strip");
+      if (err.isEmpty()) err = readImage(&pass->imgThumbnail,  archive, archiveContents, "thumbnail");
 
-      return res;
+      return err;
    }
 
    // **************************************************************************
    // readImage
    // **************************************************************************
 
-   bool Pkpass::readImage(QImage* dest, QuaZip& archive, const QStringList& archiveContents, QString imageName)
+   QString Pkpass::readImage(QImage* dest, QuaZip& archive, const QStringList& archiveContents, QString imageName)
    {
       static QStringList extensions{ "@3x.png", "@2x.png", ".png" };
 
@@ -348,14 +399,14 @@ namespace passes
          break;
       }
 
-      return res;
+      return res ? "" : C::gettext("Pass contains invalid/incomplete image data");
    }
 
    // **************************************************************************
    // readLocalization
    // **************************************************************************
 
-   bool Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QStringList& archiveContents)
+   QString Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QStringList& archiveContents)
    {
       QString localizationLocale = QLocale::system().name().mid(0, 2) + ".lproj/pass.strings";
       static QString localizationEnglish = "en.lproj/pass.strings";
@@ -364,17 +415,18 @@ namespace passes
 
       if (archiveContents.contains(localizationLocale))
          return readLocalization(pass, archive, localizationLocale);
-      else if (archiveContents.contains(localizationEnglish))
+
+      if (archiveContents.contains(localizationEnglish))
          return readLocalization(pass, archive, localizationEnglish);
 
-      return true;
+      return "";
    }
 
    // **************************************************************************
    // readLocalization
    // **************************************************************************
 
-   bool Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QString& localization)
+   QString Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QString& localization)
    {
       archive.setCurrentFile(localization);
 
@@ -401,10 +453,9 @@ namespace passes
             currentTranslation[comps[0]] = comps[1];
       } while (line.size());
 
-
       file.close();
 
-      return true;
+      return "";
    }
 
    // **************************************************************************
@@ -426,7 +477,7 @@ namespace passes
    QString Pkpass::parseColor(QString rgbString)
    {
       if (!rgbString.startsWith("rgb(") || !rgbString.endsWith(")"))
-         return "";
+         return rgbString;
 
       QStringList comps = rgbString.replace("rgb(", "").replace(")", "").split(",");
 

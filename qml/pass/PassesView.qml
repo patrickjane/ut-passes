@@ -9,16 +9,16 @@ Rectangle {
    property double cardWidth: width*0.85
    property double topMargin: (height-cardHeight)/2
 
-   color: "#dedede"
+   color: "#efefef"
 
    states: [
       State {
          name: "noCardShown"
-         PropertyChanges { target: view; color: "#dedede"  }
+         PropertyChanges { target: view; color: "#efefef"  }
       },
       State {
          name: "cardShown"
-         PropertyChanges { target: view; color: "white" }
+         PropertyChanges { target: view; color: "#dedede" }
       }
    ]
 
@@ -66,6 +66,14 @@ Rectangle {
       }
    }
 
+   Timer {
+      id: dismissTimer
+      interval: 600
+      repeat: false
+      running: false
+      onTriggered: afterDismiss()
+   }
+
    function showCard(index) {
       view.state = "cardShown"
 
@@ -85,8 +93,30 @@ Rectangle {
          return
 
       view.state = "noCardShown"
-      view.selectedCard.unflip()
 
+      if (view.selectedCard.flipped) {
+         view.selectedCard.unflip()
+         dismissTimer.start()
+      } else {
+         view.cards.forEach(function(card) {
+            card.selected = false
+            card.visible = true
+            card.anchors.topMargin = view.topMargin + card.index*units.gu(8)
+         })
+
+         view.selectedCard = undefined
+      }
+
+//      view.cards.forEach(function(card) {
+//         card.selected = false
+//         card.visible = true
+//         card.anchors.topMargin = view.topMargin + card.index*units.gu(8)
+//      })
+
+//      view.selectedCard = undefined
+   }
+
+   function afterDismiss() {
       view.cards.forEach(function(card) {
          card.selected = false
          card.visible = true

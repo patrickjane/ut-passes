@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.5
 import Ubuntu.Components 1.3
 import QtQuick.Layouts 1.11
 
@@ -9,6 +9,8 @@ Rectangle {
    property color foregroundColor: pass.standard.foregroundColor || "black"
    property color labelColor: pass.standard.labelColor || foregroundColor
    property color backgroundColor: pass.standard.backgroundColor || "white"
+   property double maxFieldLabelWidth: _getMaxFieldLabelWidth()
+
    radius: units.gu(4)
    signal infoButtonPressed()
    signal cardClicked()
@@ -31,27 +33,50 @@ Rectangle {
 
       color: "transparent"
 
-      Text {
-         id: logoText
+      Row {
          anchors.left: parent.left
-         anchors.verticalCenter: parent.verticalCenter
+         anchors.leftMargin: units.gu(1.1)
+         anchors.top: parent.top
+         anchors.bottom: parent.bottom
 
-         font.pointSize: units.gu(1.5)
-         text: passCard.pass &&
-               (passCard.pass.standard.logoText || "")
-               || ""
-         color: passCard.foregroundColor
-      }
+         Image {
+            anchors.verticalCenter: parent.verticalCenter
+            height: units.gu(6)
+            fillMode: Image.PreserveAspectFit
+            source: "image://passes/" + passCard.pass.id + "/logo"
+         }
 
-      Image {
-         anchors.left: parent.left
-         anchors.leftMargin: units.gu(1.5)
-         anchors.verticalCenter: parent.verticalCenter
-         height: units.gu(7)
-         fillMode: Image.PreserveAspectFit
-         source: "image://passes/" + passCard.pass.id + "/logo"
-         visible: !logoText.text
+         Text {
+            id: logoText
+            anchors.verticalCenter: parent.verticalCenter
+
+            font.pointSize: units.gu(1.5)
+            text: passCard.pass &&
+                  (passCard.pass.standard.logoText || "")
+                  || ""
+            color: passCard.foregroundColor
+         }
       }
+   }
+
+   TextMetrics {
+      id: textMetrics
+      font.family: logoText.font.family
+      font.pointSize: units.gu(1)
+   }
+
+   function _getMaxFieldLabelWidth() {
+      var res = 0.0
+
+      passCard.pass.details.secondaryFields.forEach(function(f) {
+         textMetrics.text = f.label
+
+         res = res > textMetrics.tightBoundingRect.width ? res : textMetrics.tightBoundingRect.width
+      })
+
+      console.log("Max field label width:", res)
+
+      return res
    }
 
    Row {
@@ -82,19 +107,43 @@ Rectangle {
       }
    }
 
+   // strip image
+
+   Rectangle {
+      id: stripContainer
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.leftMargin: 1
+      anchors.rightMargin: 1
+      anchors.top: logoTextContainer.bottom
+
+      height: childrenRect.height
+
+      Image {
+         id: stripImage
+         anchors.top: parent.top
+         anchors.left: parent.left
+         anchors.right: parent.right
+         fillMode: Image.PreserveAspectCrop
+         source: "image://passes/" + passCard.pass.id + "/strip"
+      }
+   }
+
+   // primary fields & rest of fields
+
    Flickable {
       id: passContents
-      anchors.top: logoTextContainer.bottom
-      anchors.topMargin: units.gu(4)
+      anchors.top: stripContainer.bottom
+      anchors.topMargin: units.gu(2)
       anchors.left: parent.left
       anchors.leftMargin: units.gu(1)
       anchors.right: parent.right
-      anchors.rightMargin: units.gu(2)
+      anchors.rightMargin: units.gu(1)
       anchors.bottom: barcodeContent.top
       anchors.bottomMargin: units.gu(4)
 
       contentHeight: contentItem.childrenRect.height
-      contentWidth: parent.width - units.gu(3)
+      contentWidth: parent.width - units.gu(2)
       clip: true
 
       MouseArea {
@@ -108,6 +157,7 @@ Rectangle {
          id: fields
          spacing: units.gu(3)
          width: parent.width
+         anchors.left: parent.left
 
          // primary fields
 
@@ -124,9 +174,14 @@ Rectangle {
 
          Grid {
             id: grid
-            property int numCols: passCard.pass.details.style === "boardingPass" ? 3 : 2
-            property double colSpacing: units.gu(2)
-            property double colWidth: grid.width/numCols - (numCols-1)*colSpacing
+            property double colSpacing: units.gu(1)
+            property double colWidth2: (grid.width - (2-1)*colSpacing)/2
+            property double colWidth3: (grid.width - (3-1)*colSpacing)/3
+
+            property int numCols: passCard.pass.details.style !== "boardingPass"
+                                  ? 2
+                                  : (passCard.maxFieldLabelWidth > colWidth3 ? 2 : 3)
+
 
             anchors.left: parent.left
             anchors.right: parent.right
@@ -142,7 +197,7 @@ Rectangle {
                delegate: PassField {
                   Layout.fillWidth: true
                   field: modelData
-                  width: grid.colWidth
+                  width: grid.numCols == 2 ? grid.colWidth2 : grid.colWidth3
                   foregroundColor: passCard.foregroundColor
                   labelColor: passCard.labelColor
                }
@@ -156,7 +211,7 @@ Rectangle {
                delegate: PassField {
                   Layout.fillWidth: true
                   field: modelData
-                  width: grid.colWidth
+                  width: grid.numCols == 2 ? grid.colWidth2 : grid.colWidth3
                   foregroundColor: passCard.foregroundColor
                   labelColor: passCard.labelColor
                }
@@ -212,5 +267,16 @@ Rectangle {
             emit: infoButtonPressed()
          }
       }
+   }
+
+   Image {
+      id: passIcon
+      height: units.gu(3)
+      width: units.gu(3)
+      anchors.left: parent.left
+      anchors.leftMargin: units.gu(2)
+      anchors.bottom: parent.bottom
+      anchors.bottomMargin: units.gu(2)
+      source: "image://passes/" + passCard.pass.id + "/icon"
    }
 }

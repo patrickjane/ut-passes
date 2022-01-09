@@ -58,16 +58,17 @@ namespace passes
 
          // QML interaction
 
+         Q_INVOKABLE void init();
          Q_INVOKABLE void reload();
          Q_INVOKABLE bool importPass(const QString& filePath);
-         Q_INVOKABLE bool deletePass(QString id);
+         Q_INVOKABLE bool deletePass(QString filePath);
 
          Pass* getPass(QString id) { return mItemMap.count(id) ? mItemMap[id] : nullptr; }
 
       signals:
          void error(QString error);
-         void passError(QString error);
          void countChanged();
+         void failedPasses(QVariantList passes);
 
       private:
          QString getDataPath() const;

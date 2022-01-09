@@ -8,8 +8,10 @@ Column {
    Text {
       anchors.left: parent.left
       text: field.label.toUpperCase()
+      width: parent.width
       font.pointSize: units.gu(1)
       color: labelColor
+      wrapMode: Text.WordWrap
    }
 
    Text {

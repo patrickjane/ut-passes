@@ -26,6 +26,8 @@
 #include <QDateTime>
 #include <QJsonObject>
 #include <QImage>
+#include <QJsonDocument>
+#include <QRegExp>
 
 #include "quazip/quazip.h"
 
@@ -212,37 +214,41 @@ namespace passes
          }
    };
 
+   struct PassResult
+   {
+         Pass* pass;
+         QString err;
+   };
+
    // **************************************************************************
    // class Pkpass
    // **************************************************************************
 
-   class Pkpass: public QObject
+   class Pkpass
    {
-         Q_OBJECT
-
       public:
-         Pass* openPass(QString filePath);
-
-      signals:
-         void error(QString error);
+         Pkpass();
+         PassResult openPass(QString filePath);
 
       protected:
-         bool readPass(Pass* pass, QuaZip& archive);
-         bool readImages(Pass* pass, QuaZip& archive, const QStringList& archiveContents);
-         bool readImage(QImage* dest, QuaZip& archive, const QStringList& archiveContents, QString imageName);
-         bool readLocalization(Pass* pass, QuaZip& archive, const QStringList& archiveContents);
-         bool readLocalization(Pass* pass, QuaZip& archive, const QString& localization);
+         QString readPass(Pass* pass, QuaZip& archive);
+         QJsonDocument readPassDocument(const QByteArray& data, QString& err);
+         QString readImages(Pass* pass, QuaZip& archive, const QStringList& archiveContents);
+         QString readImage(QImage* dest, QuaZip& archive, const QStringList& archiveContents, QString imageName);
+         QString readLocalization(Pass* pass, QuaZip& archive, const QStringList& archiveContents);
+         QString readLocalization(Pass* pass, QuaZip& archive, const QString& localization);
 
-         bool readPassStandard(Pass* pass, QJsonObject& object);
-         bool readPassBarcode(Pass* pass, QJsonObject object);
-         bool readPassStyle(Pass* pass, QJsonObject object);
-         bool readPassStyleFields(QList<PassStyleField>& fields, QJsonArray object);
+         QString readPassStandard(Pass* pass, QJsonObject& object);
+         QString readPassBarcode(Pass* pass, QJsonObject object);
+         QString readPassStyle(Pass* pass, QJsonObject object);
+         QString readPassStyleFields(QList<PassStyleField>& fields, QJsonArray object);
 
          const QString& translate(QString& other);
          QString parseColor(QString rgbString);
 
          Translation currentTranslation;
-   };
+         QRegExp trailingCommaRegEx1, trailingCommaRegEx2;
+   };   
 
 } // namespace passes
 

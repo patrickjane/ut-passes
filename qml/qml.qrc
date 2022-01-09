@@ -17,5 +17,7 @@
         <file>pass/PassHeaderField.qml</file>
         <file>pass/PassBarcode.qml</file>
         <file>pages/SharePage.qml</file>
+        <file>util/Dialogs.qml</file>
+        <file>util/qmldir</file>
     </qresource>
 </RCC>

@@ -34,7 +34,7 @@ namespace passes
    class BarcodeGenerator
    {
       public:
-         static bool generate(QString text, QString format, QImage* dest);
+         static QString generate(QString text, QString format, QImage* dest);
 
       private:
          static void stbiWriteFunc(void* context, void* data, int size);

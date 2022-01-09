@@ -11,6 +11,6 @@
         }
     },
     "version": "1.0.0",
-    "maintainer": "Patrick Fial <mg.m@gmx.net>",
+    "maintainer": "patrickjane <mg.m@gmx.net>",
     "framework" : "@CLICK_FRAMEWORK@"
 }

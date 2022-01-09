@@ -1,14 +1,13 @@
 import QtQuick 2.7
 import Ubuntu.Components 1.3
-//import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.1
 import Ubuntu.Content 1.1
-import Ubuntu.Components.Popups 1.3
 
 import "../notify"
 import "../pass"
+import "../util"
 
 import PassesModel 1.0
 
@@ -32,6 +31,11 @@ Page {
             }
          },
          Action {
+            iconName: "close"
+            visible: !!passesView.selectedCard
+            onTriggered: passesView.dismissCard()
+         },
+         Action {
             iconName: "share"
             visible: !!passesView.selectedCard
             onTriggered: {
@@ -44,15 +48,10 @@ Page {
             }
          },
          Action {
-            iconName: "close"
-            visible: !!passesView.selectedCard
-            onTriggered: passesView.dismissCard()
-         },
-         Action {
             iconName: "delete"
             visible: !!passesView.selectedCard
             onTriggered: {
-               var popup = PopupUtils.open(deleteQuestion, root);
+               var popup = Dialogs.deleteDialog(root)
 
                popup.accepted.connect(function() {
                   var passID =  passesView.selectedCard.pass.id
@@ -100,35 +99,6 @@ Page {
             onClicked: {
                var importPage = pageStack.push(Qt.resolvedUrl("ImportPage.qml"), {})
                importPage.imported.connect(passesModel.importPass)
-            }
-         }
-      }
-   }
-
-   Component {
-      id: deleteQuestion
-
-      Dialog {
-         id: deleteQuestionDialog
-         title: i18n.tr("Delete pass")
-         text: i18n.tr("Do you want to delete the pass from Passes? This operation cannot be undone.")
-
-         signal accepted();
-         signal rejected();
-
-         Button {
-            text: i18n.tr("Delete")
-            color: UbuntuColors.red
-            onClicked: {
-               deleteQuestionDialog.accepted()
-               PopupUtils.close(deleteQuestionDialog)
-            }
-         }
-         Button {
-            text: i18n.tr("Cancel")
-            onClicked: {
-               deleteQuestionDialog.rejected()
-               PopupUtils.close(deleteQuestionDialog)
             }
          }
       }

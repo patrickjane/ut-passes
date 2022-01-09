@@ -45,7 +45,7 @@ Flipable {
 //      radius: units.gu(1.5)
 //      samples: 17
 //      color: "#80000000"
-//      source: frontCard
+//      source: backCard
 //      visible: flipable.selected && flipable.flipped
 //   }
 
