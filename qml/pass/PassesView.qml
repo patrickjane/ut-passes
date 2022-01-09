@@ -1,4 +1,4 @@
-import QtQuick 2.4
+import QtQuick 2.5
 
 Rectangle {
    id: view
@@ -106,14 +106,6 @@ Rectangle {
 
          view.selectedCard = undefined
       }
-
-//      view.cards.forEach(function(card) {
-//         card.selected = false
-//         card.visible = true
-//         card.anchors.topMargin = view.topMargin + card.index*units.gu(8)
-//      })
-
-//      view.selectedCard = undefined
    }
 
    function afterDismiss() {

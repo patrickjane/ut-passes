@@ -28,6 +28,7 @@
 #include <QImage>
 #include <QJsonDocument>
 #include <QRegExp>
+#include <QFont>
 
 #include "quazip/quazip.h"
 
@@ -139,12 +140,14 @@ namespace passes
          QList<PassStyleField> auxiliaryFields;
          QList<PassStyleField> backFields;
          QString transitType;
+         qreal maxFieldLabelWidth;
 
          explicit operator QVariant() const
          {
             QVariantMap m;
             m.insert("style", style);
             m.insert("transitType", transitType);
+            m.insert("maxFieldLabelWidth", maxFieldLabelWidth);
 
             QVariantList fields;
 
@@ -227,8 +230,10 @@ namespace passes
    class Pkpass
    {
       public:
-         Pkpass();
+         Pkpass(QFont defaultFont);
          PassResult openPass(QString filePath);
+
+         void setDefaultFont(QFont to) { defaultFont = to; }
 
       protected:
          QString readPass(Pass* pass, QuaZip& archive);
@@ -248,6 +253,7 @@ namespace passes
 
          Translation currentTranslation;
          QRegExp trailingCommaRegEx1, trailingCommaRegEx2;
+         QFont defaultFont;
    };   
 
 } // namespace passes

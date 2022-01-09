@@ -25,6 +25,7 @@
 #include <QAbstractListModel>
 #include <QObject>
 #include <QDir>
+#include <QFont>
 
 #include "pkpass.h"
 
@@ -43,6 +44,7 @@ namespace passes
 
          Q_OBJECT
          Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
+         Q_PROPERTY(QFont font READ getDefaultFont WRITE setDefaultFont)
 
       public:
          static PassesModel* getInstace() { return instance; }
@@ -63,6 +65,9 @@ namespace passes
          Q_INVOKABLE bool importPass(const QString& filePath);
          Q_INVOKABLE bool deletePass(QString filePath);
 
+         QFont getDefaultFont() { return defaultFont; }
+         void setDefaultFont(QFont to) { defaultFont = to; pkpass.setDefaultFont(to); }
+
          Pass* getPass(QString id) { return mItemMap.count(id) ? mItemMap[id] : nullptr; }
 
       signals:
@@ -81,6 +86,7 @@ namespace passes
          std::vector<Pass*> mItems;
          std::map<QString,Pass*> mItemMap;
          QDir passesDir;
+         QFont defaultFont;
    };
 
 } // namespace passes

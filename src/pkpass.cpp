@@ -24,6 +24,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QFontMetrics>
 
 #include "quazip/quazipfile.h"
 #include "barcode.h"
@@ -38,8 +39,9 @@ namespace passes
    // class PkpassParser
    // **************************************************************************
 
-   Pkpass::Pkpass()
-      : trailingCommaRegEx1(",[\\s\r\n]*\\]"), trailingCommaRegEx2(",[\\s\r\n]*\\}")
+   Pkpass::Pkpass(QFont defaultFont)
+      : trailingCommaRegEx1(",[\\s\r\n]*\\]"), trailingCommaRegEx2(",[\\s\r\n]*\\}"),
+        defaultFont(defaultFont)
    {
    }
 
@@ -67,6 +69,19 @@ namespace passes
 
       if (err.isEmpty()) err = readPass(pass, archive);
       if (err.isEmpty()) err = readImages(pass, archive, archiveContents);
+
+      QFontMetrics fm(defaultFont);
+
+      qreal maxWidth = 0.0;
+
+      for (auto f : pass->details.secondaryFields)
+      {
+         auto width = fm.tightBoundingRect(f.label).width();
+
+         maxWidth = maxWidth > width ? maxWidth : width;
+      }
+
+      pass->details.maxFieldLabelWidth = maxWidth;
 
       archive.close();
       return { pass, err };

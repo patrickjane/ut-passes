@@ -52,7 +52,7 @@ namespace passes
    PassesModel* PassesModel::instance = nullptr;
 
    PassesModel::PassesModel(QObject *parent)
-      : QAbstractListModel(parent), storageReady(false)
+      : QAbstractListModel(parent), storageReady(false), pkpass(defaultFont)
    {
       instance = this;
    }

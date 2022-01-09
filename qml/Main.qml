@@ -1,6 +1,5 @@
 import QtQuick 2.7
 import Ubuntu.Components 1.3
-//import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.1
@@ -22,15 +21,16 @@ MainView {
    width: units.gu(45)
    height: units.gu(75)
 
-//   width: units.gu(100)
-//   height: units.gu(200)
-
    Notification {
       notificationId: "mainNotification"
    }
 
+   Text { id: text; font.pointSize: units.gu(1) }
+
    PassesModel {
       id: passesModel
+
+      font: text.font
 
       onError: Notify.error(i18n.tr("Error"), error)
 

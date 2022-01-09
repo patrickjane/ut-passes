@@ -9,7 +9,6 @@ Rectangle {
    property color foregroundColor: pass.standard.foregroundColor || "black"
    property color labelColor: pass.standard.labelColor || foregroundColor
    property color backgroundColor: pass.standard.backgroundColor || "white"
-   property double maxFieldLabelWidth: _getMaxFieldLabelWidth()
 
    radius: units.gu(4)
    signal infoButtonPressed()
@@ -57,26 +56,6 @@ Rectangle {
             color: passCard.foregroundColor
          }
       }
-   }
-
-   TextMetrics {
-      id: textMetrics
-      font.family: logoText.font.family
-      font.pointSize: units.gu(1)
-   }
-
-   function _getMaxFieldLabelWidth() {
-      var res = 0.0
-
-      passCard.pass.details.secondaryFields.forEach(function(f) {
-         textMetrics.text = f.label
-
-         res = res > textMetrics.tightBoundingRect.width ? res : textMetrics.tightBoundingRect.width
-      })
-
-      console.log("Max field label width:", res)
-
-      return res
    }
 
    Row {
@@ -177,11 +156,9 @@ Rectangle {
             property double colSpacing: units.gu(1)
             property double colWidth2: (grid.width - (2-1)*colSpacing)/2
             property double colWidth3: (grid.width - (3-1)*colSpacing)/3
-
             property int numCols: passCard.pass.details.style !== "boardingPass"
                                   ? 2
-                                  : (passCard.maxFieldLabelWidth > colWidth3 ? 2 : 3)
-
+                                  : (passCard.pass.details.maxFieldLabelWidth > colWidth3 ? 2 : 3)
 
             anchors.left: parent.left
             anchors.right: parent.right
