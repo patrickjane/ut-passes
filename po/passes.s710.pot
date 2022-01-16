@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: passes.s710\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-09 20:17+0000\n"
+"POT-Creation-Date: 2022-01-16 16:05+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,10 +16,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: ../qml/Main.qml:39
-msgid "Error"
-msgstr ""
 
 #: ../qml/pages/ImportPage.qml:13
 msgid "Import pass"
@@ -29,8 +25,32 @@ msgstr ""
 msgid "Passes"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:93
+#: ../qml/pages/MainPage.qml:66
+msgid "Failed to delete pass"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:67
+msgid "Pass '%1' could not be deleted (%2)."
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:105
+msgid "All passes have expired"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:106
 msgid "No passes have been added yet"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:111
+msgid "Add new pass"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:129
+msgid "Failed to import pass"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:130
+msgid "Pass '%1' could not be imported (%2)."
 msgstr ""
 
 #: ../qml/pages/SharePage.qml:11
@@ -38,7 +58,15 @@ msgid "Share pass"
 msgstr ""
 
 #: ../qml/pass/PassBarcode.qml:33
-msgid "This card has expired"
+msgid "This pass has expired"
+msgstr ""
+
+#: ../qml/pass/PassesView.qml:52
+msgid "Hide %1 expired passes"
+msgstr ""
+
+#: ../qml/pass/PassesView.qml:53
+msgid "Show %1 expired passes"
 msgstr ""
 
 #: ../qml/util/Dialogs.qml:13
@@ -79,4 +107,16 @@ msgstr ""
 msgid ""
 "Pass '%1' could not be opened (%2). Do you want to delete the pass from "
 "storage? This operation cannot be undone."
+msgstr ""
+
+#: ../qml/util/Dialogs.qml:114 ../qml/util/Dialogs.qml:133
+msgid "Close"
+msgstr ""
+
+#: ../qml/util/Dialogs.qml:127
+msgid "Failed to init storage directory"
+msgstr ""
+
+#: ../qml/util/Dialogs.qml:128
+msgid "Storage directory could not be initialized (%1)."
 msgstr ""

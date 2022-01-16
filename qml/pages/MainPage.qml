@@ -27,7 +27,7 @@ Page {
             visible: !passesView.selectedCard
             onTriggered: {
                var importPage = pageStack.push(Qt.resolvedUrl("ImportPage.qml"), {})
-               importPage.imported.connect(passesModel.importPass)
+               importPage.imported.connect(importUrls)
             }
          },
          Action {
@@ -54,9 +54,20 @@ Page {
                var popup = Dialogs.deleteDialog(root)
 
                popup.accepted.connect(function() {
-                  var passID =  passesView.selectedCard.pass.id
+                  var passFile = passesView.selectedCard.pass.filePath;
                   passesView.dismissCard()
-                  passesModel.deletePass(passID)
+                  var err = passesModel.deletePass(passFile)
+
+                  if (err) {
+                     var comps = (passFile || "").split("/")
+                     var fileName = comps.length && comps[comps.length-1]
+
+                     Dialogs.simpleErrorDialog(mainPage,
+                                               i18n.tr("Failed to delete pass"),
+                                               i18n.tr("Pass '%1' could not be deleted (%2).")
+                                               .arg(fileName)
+                                               .arg(err))
+                  }
                })
             }
          }
@@ -90,17 +101,36 @@ Page {
 
          Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: i18n.tr("No passes have been added yet")
+            text: passesModel.countExpired > 0
+                  ? i18n.tr("All passes have expired")
+                  : i18n.tr("No passes have been added yet")
          }
 
          Button {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "Add new pass"
+            text: i18n.tr("Add new pass")
             onClicked: {
                var importPage = pageStack.push(Qt.resolvedUrl("ImportPage.qml"), {})
-               importPage.imported.connect(passesModel.importPass)
+               importPage.imported.connect(importUrls)
             }
          }
       }
+   }
+
+   function importUrls(urls) {
+      urls.forEach(function(fileUrl) {
+         var err = passesModel.importPass(fileUrl, passesView.showExpiredPasses)
+
+         if (err) {
+            var comps = (fileUrl || "").split("/")
+            var fileName = comps.length && comps[comps.length-1]
+
+            Dialogs.simpleErrorDialog(mainPage,
+                                      i18n.tr("Failed to import pass"),
+                                      i18n.tr("Pass '%1' could not be imported (%2).")
+                                      .arg(fileName)
+                                      .arg(err))
+         }
+      })
    }
 }

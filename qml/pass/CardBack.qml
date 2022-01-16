@@ -111,22 +111,27 @@ Rectangle {
                   color: foregroundColor
                   wrapMode: Text.WordWrap
                   width: parent.width
-
+                  onLinkActivated: Qt.openUrlExternally(link)
                }
             }
          }
       }
    }
 
-   Icon {
+   Rectangle {
       height: units.gu(3)
       width: units.gu(3)
       anchors.right: parent.right
       anchors.rightMargin: units.gu(2)
       anchors.bottom: parent.bottom
       anchors.bottomMargin: units.gu(2)
-      name: "mail-reply"
-      color: passCard.foregroundColor
+      color: backgroundColor
+
+      Icon {
+         anchors.fill: parent
+         name: "mail-reply"
+         color: passCard.foregroundColor
+      }
 
       MouseArea {
          anchors.fill: parent

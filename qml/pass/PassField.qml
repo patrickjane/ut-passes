@@ -10,6 +10,7 @@ Column {
       text: field.label.toUpperCase()
       width: parent.width
       font.pointSize: units.gu(1)
+      font.bold: true
       color: labelColor
       wrapMode: Text.WordWrap
    }
@@ -21,5 +22,6 @@ Column {
       font.pointSize: units.gu(1.5)
       color: foregroundColor
       wrapMode: Text.WordWrap
+      onLinkActivated: Qt.openUrlExternally(link)
    }
 }

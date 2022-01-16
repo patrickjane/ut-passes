@@ -30,9 +30,7 @@ MainView {
    PassesModel {
       id: passesModel
 
-      font: text.font
-
-      onError: Notify.error(i18n.tr("Error"), error)
+      defaultFont: text.font
 
       onFailedPasses: {
          console.log(JSON.stringify(passes))
@@ -53,11 +51,24 @@ MainView {
       onImportRequested: {
          var filePath = String(transfer.items[0].url).replace('file://', '')
          var fileName = filePath.split("/").pop();
-         var popup = Dialogs.addDialog(root, fileName) // PopupUtils.open(addDialogComponent, root, {fileName: fileName});
+         var popup = Dialogs.addDialog(root, fileName)
 
          popup.accepted.connect(function() {
             passesModel.importPass(filePath)
          })
+      }
+   }
+
+   Timer {
+      property string errorString: ""
+
+      id: initErrorTimer
+      interval: 100
+      repeat: false
+      running: !!errorString
+
+      onTriggered: {
+         Dialogs.storageErrorDialog(root, errorString)
       }
    }
 
@@ -70,8 +81,12 @@ MainView {
       Component.onCompleted: {
          push(mainPage)
 
-         passesModel.init()
-         passesModel.reload()
+         var err = passesModel.init()
+
+         initErrorTimer.errorString = err
+
+         if (!err)
+            passesModel.reload()
       }
 
       MainPage {

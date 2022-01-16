@@ -22,7 +22,6 @@
 #include "passesmodel.h"
 #include <QStandardPaths>
 #include <QDebug>
-#include <QCryptographicHash>
 
 namespace C {
 #include <libintl.h>
@@ -30,21 +29,6 @@ namespace C {
 
 namespace passes
 {
-   QByteArray fileMd5(const QString &fileName)
-   {
-      QFile f(fileName);
-
-      if (f.open(QFile::ReadOnly))
-      {
-         QCryptographicHash hash(QCryptographicHash::Md5);
-
-         if (hash.addData(&f))
-            return hash.result().toHex();
-      }
-
-      return QByteArray();
-   }
-
    // **************************************************************************
    // class PassesModel
    // **************************************************************************
@@ -52,7 +36,7 @@ namespace passes
    PassesModel* PassesModel::instance = nullptr;
 
    PassesModel::PassesModel(QObject *parent)
-      : QAbstractListModel(parent), storageReady(false), pkpass(defaultFont)
+      : QAbstractListModel(parent), storageReady(false), countExpired(0)
    {
       instance = this;
    }
@@ -61,12 +45,12 @@ namespace passes
    // init
    // **************************************************************************
 
-   void PassesModel::init()
+   QString PassesModel::init()
    {
       QString dataPath = getDataPath();
 
       if (!dataPath.size())
-         return;
+         return C::gettext("Failed to determine writable app data storage location");
 
       qDebug() << "DATA PATH: " << dataPath;
 
@@ -77,13 +61,17 @@ namespace passes
          bool res = dir.mkpath(dataPath + "/passes");
 
          if (!res)
-            return;
+            return QString(C::gettext("App data storage location inaccessible"))
+                  + " (" + QString(C::gettext("can't create subfolder:"))
+                  + " " + dir.absolutePath() + ")";
       }
 
       passesDir.setPath(dir.path());
-      passesDir.setPath("/home/phablet/passes");
+//      passesDir.setPath("/home/phablet/passes");
       passesDir.setSorting(QDir::Time);
       storageReady = true;
+
+      return "";
    }
 
    // **************************************************************************
@@ -141,8 +129,12 @@ namespace passes
 
       beginResetModel();
 
+      for (auto p : mItems)
+         delete p;
+
       mItems.clear();
       mItemMap.clear();
+      countExpired = 0;
 
       QVariantList failed;
 
@@ -153,10 +145,6 @@ namespace passes
 
          auto passResult = pkpass.openPass(info.absoluteFilePath());
 
-         passResult.pass->id = fileMd5(info.absoluteFilePath());
-         passResult.pass->modified = info.lastModified();
-         passResult.pass->filePath = info.absoluteFilePath();
-
          if (!passResult.err.isEmpty())
          {
             qDebug() << "Pass open failed: " << passResult.err;
@@ -165,6 +153,13 @@ namespace passes
             failedPass["filePath"] = passResult.pass->filePath;
             failedPass["error"] = passResult.err;
             failed.append(failedPass);
+
+            delete passResult.pass;
+         }
+         else if (passResult.pass->standard.expired)
+         {
+            delete passResult.pass;
+            countExpired++;
          }
          else
          {
@@ -173,7 +168,10 @@ namespace passes
          }
       }
 
+      std::sort(mItems.begin(), mItems.end(), passSorter);
+
       endResetModel();
+      emit countExpiredChanged();
       emit countChanged();
 
       if (failed.length())
@@ -184,10 +182,108 @@ namespace passes
    }
 
    // **************************************************************************
+   // openPasses
+   // **************************************************************************
+
+   void PassesModel::showExpired()
+   {
+      size_t oldCount = mItems.size();
+      QVariantList failed;
+
+      for (const QFileInfo& info : passesDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot | QDir::Readable))
+      {
+         if (info.fileName().startsWith(".") || !info.fileName().endsWith(".pkpass"))
+            continue;
+
+         if (isOpen(info.absoluteFilePath()))
+         {
+            qDebug() << "Skipping open of already opened pass " << info.absoluteFilePath();
+            continue;
+         }
+
+         auto passResult = pkpass.openPass(info.absoluteFilePath());
+
+         if (!passResult.err.isEmpty())
+         {
+            qDebug() << "Pass open failed: " << passResult.err;
+
+            QVariantMap failedPass;
+            failedPass["filePath"] = passResult.pass->filePath;
+            failedPass["error"] = passResult.err;
+            failed.append(failedPass);
+         }
+         else if (!passResult.pass->standard.expired)
+         {
+            delete passResult.pass;
+         }
+         else
+         {
+            mItemMap[passResult.pass->id] = passResult.pass;
+            mItems.push_back(passResult.pass);
+         }
+      }
+
+      if (failed.length())
+      {
+         qDebug() << failed.length() << " passed failed to open";
+         emit failedPasses(failed);
+      }
+
+      if (mItems.size() != oldCount)
+      {
+         std::sort(mItems.begin(), mItems.end(), passSorter);
+         beginResetModel();
+         endResetModel();
+         emit countChanged();
+      }
+   }
+
+   // **************************************************************************
+   // hideExpired
+   // **************************************************************************
+
+   void PassesModel::hideExpired()
+   {
+      size_t oldCount = mItems.size();
+
+      for (auto it = mItems.begin() ; it != mItems.end(); )
+      {
+         if ((*it)->standard.expired)
+         {
+            mItemMap.erase((*it)->id);
+            delete *it;
+            it = mItems.erase(it);
+         }
+         else
+         {
+            it++;
+         }
+      }
+
+      if (mItems.size() != oldCount)
+      {
+         beginResetModel();
+         endResetModel();
+         emit countChanged();
+      }
+   }
+
+   // **************************************************************************
+   // isOpen
+   // **************************************************************************
+
+   bool PassesModel::isOpen(const QString& filePath)
+   {
+      auto it = std::find_if(mItems.begin(), mItems.end(), [&filePath](Pass* pass){ return pass->filePath == filePath; });
+
+      return it != mItems.end();
+   }
+
+   // **************************************************************************
    // importPass
    // **************************************************************************
 
-   bool PassesModel::importPass(const QString& filePath)
+   QString PassesModel::importPass(const QString& filePath, bool expiredShown)
    {
       QString fp = filePath;
 
@@ -195,77 +291,103 @@ namespace passes
          fp.remove("file://");
 
       if (!storageReady)
-      {
-         emit error(QString(C::gettext("Storage directory inaccessible, cannot import pass")) + " (" + passesDir.absolutePath() + ")");
-         return false;
-      }
+         return C::gettext("Storage directory inaccessible, cannot import pass");
 
       if (!QFile::exists(fp))
-      {
-         emit error(C::gettext("File path of the pass seems to be invalid"));
-         return false;
-      }
+         return C::gettext("File path of the pass seems to be invalid");
 
       QFileInfo info(fp);
-      QString targetPath = passesDir.path() + "/" + info.fileName() + ".pkpass";
+      QString targetPath = passesDir.path() + "/" + info.fileName();
 
       qDebug() << "Importing pass: " << fp << " To: " << targetPath;
 
       if (QFile::exists(targetPath))
-      {
-         emit error(C::gettext("Same pass has already been imported"));
-         return false;
-      }
+         return C::gettext("Same pass has already been imported");
 
       QFile sourceFile(fp);
       bool res = sourceFile.copy(targetPath);
 
       if (!res)
+         return QString(C::gettext("Failed to import pass into storage directory ")) + " (" + sourceFile.errorString() + ")";
+
+      info.setFile(targetPath);
+
+      auto passResult = pkpass.openPass(info.absoluteFilePath());
+      auto it = std::find_if(mItems.begin(), mItems.end(), [&passResult](Pass* pass) { return pass->id == passResult.pass->id; });
+
+      if (!passResult.err.isEmpty())
       {
-         emit error(QString(C::gettext("Failed to import pass into storage directory ")) + " (" + sourceFile.errorString() + ")");
-         return false;
+         qDebug() << "Pass open failed: " << passResult.err;
+
+         QFile::remove(targetPath);
+
+         delete passResult.pass;
+         return QString(C::gettext("Failed to open pass")) + " (" + passResult.err + ")";
+      }
+      else if (it != mItems.end())
+      {
+         QFile::remove(targetPath);
+
+         delete passResult.pass;
+         return C::gettext("Pass with the same barcode has already been imported");
+      }
+      else if (passResult.pass->standard.expired && !expiredShown)
+      {
+         countExpired++;
+         delete passResult.pass;
+      }
+      else
+      {
+         if (passResult.pass->standard.expired)
+            countExpired++;
+
+         mItemMap[passResult.pass->id] = passResult.pass;
+         mItems.push_back(passResult.pass);
       }
 
-      reload();
-      return true;
+      std::sort(mItems.begin(), mItems.end(), passSorter);
+      beginResetModel();
+      endResetModel();
+      emit countChanged();
+      emit countExpiredChanged();
+
+      return "";
    }
 
    // **************************************************************************
    // deletePass
    // **************************************************************************
 
-   bool PassesModel::deletePass(QString filePath)
+   QString PassesModel::deletePass(QString filePath)
    {
       qDebug() << "Deleting pass " << filePath;
 
-      auto it = std::find_if(mItems.begin(), mItems.end(), [&filePath](Pass* pass){ return pass->filePath == filePath; });
+      auto it = std::find_if(mItems.begin(), mItems.end(), [&filePath](Pass* pass) { return pass->filePath == filePath; });
 
       if (it == mItems.end() || !QFile::exists(filePath) || !mItemMap.count((*it)->id))
-      {
-         emit error(C::gettext("Failed to delete pass (pass unknown)"));
-         return false;
-      }
+         return C::gettext("Failed to delete pass (pass unknown)");
 
       auto pass = *it;
-      auto index = it - mItems.begin();
       QFile passFile(filePath);
       bool res = passFile.remove();
 
       if (!res)
+         return QString(C::gettext("Failed to delete pass from storage directory (%1)")).arg(passFile.errorString());
+
+      if (pass->standard.expired)
       {
-         emit error(QString(C::gettext("Failed to delete pass from storage directory ")) + " (" + passFile.errorString() + ")");
-         return false;
+         countExpired--;
+         emit countExpiredChanged();
       }
 
-      beginRemoveRows(QModelIndex(), index, index);
+      beginResetModel();
 
       mItemMap.erase(pass->id);
       mItems.erase(it);
       delete pass;
 
-      endRemoveRows();
+      endResetModel();
       emit countChanged();
-      return true;
+      return "";
    }
-
 } // namespace passes

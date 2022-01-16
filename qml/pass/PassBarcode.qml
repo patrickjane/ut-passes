@@ -30,7 +30,7 @@ Rectangle {
       anchors.bottomMargin: units.gu(0.9)
 
       font.pointSize: units.gu(1)
-      text: i18n.tr('This card has expired')
+      text: i18n.tr('This pass has expired')
 
       visible: barcodeImageItem.expired
    }

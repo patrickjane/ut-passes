@@ -25,6 +25,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QFontMetrics>
+#include <QCryptographicHash>
+#include <QFile>
 
 #include "quazip/quazipfile.h"
 #include "barcode.h"
@@ -35,25 +37,43 @@ namespace C {
 
 namespace passes
 {
+   QByteArray fileMd5(const QString &fileName)
+   {
+      QFile f(fileName);
+
+      if (f.open(QFile::ReadOnly))
+      {
+         QCryptographicHash hash(QCryptographicHash::Md5);
+
+         if (hash.addData(&f))
+            return hash.result().toHex();
+      }
+
+      return QByteArray();
+   }
+
    // **************************************************************************
    // class PkpassParser
    // **************************************************************************
 
-   Pkpass::Pkpass(QFont defaultFont)
+   Pkpass::Pkpass()
       : trailingCommaRegEx1(",[\\s\r\n]*\\]"), trailingCommaRegEx2(",[\\s\r\n]*\\}"),
-        defaultFont(defaultFont)
+        defaultFont(QFont())
    {
    }
 
+   // **************************************************************************
+   // openPass
+   // **************************************************************************
 
-   PassResult Pkpass::openPass(QString filePath)
+   PassResult Pkpass::openPass(const QFileInfo& info)
    {
       Pass* pass = new Pass();
       currentTranslation.clear();
 
-      qDebug() << "OPEN PASS: " << filePath;
+      qDebug() << "OPEN PASS: " << info.absoluteFilePath();
 
-      QuaZip archive(filePath);
+      QuaZip archive(info.absoluteFilePath());
 
       bool res = archive.open(QuaZip::mdUnzip);
 
@@ -82,6 +102,12 @@ namespace passes
       }
 
       pass->details.maxFieldLabelWidth = maxWidth;
+      pass->id = fileMd5(info.absoluteFilePath());
+      pass->modified = info.lastModified();
+      pass->filePath = info.absoluteFilePath();
+
+      if (!pass->sortingDate.isValid())
+         pass->sortingDate = pass->modified;
 
       archive.close();
       return { pass, err };
@@ -182,9 +208,6 @@ namespace passes
       translate(pass->standard.description);
       translate(pass->standard.organization);
 
-      if (object.contains("relevantDate"))
-         pass->standard.relevantDate = object["relevantDate"].toString();
-
       if (object.contains("expirationDate"))
       {
          pass->standard.expirationDate = object["expirationDate"].toString();
@@ -194,6 +217,17 @@ namespace passes
             pass->standard.expired = true;
          else
             pass->standard.expired = true;
+      }
+
+      if (object.contains("relevantDate"))
+      {
+         pass->standard.relevantDate = object["relevantDate"].toString();
+         pass->sortingDate = QDateTime::fromString(pass->standard.relevantDate, Qt::ISODate);
+
+         if (!object.contains("expirationDate") && QDateTime::currentDateTime().secsTo(pass->sortingDate) <= 0)
+         {
+            pass->standard.expired = true;
+         }
       }
 
       if (object.contains("voided"))

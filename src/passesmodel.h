@@ -35,6 +35,14 @@
 
 namespace passes
 {
+   struct PassSorter
+   {
+         bool operator()(Pass* a, Pass* b) const
+         {
+            return a->sortingDate.toSecsSinceEpoch() > b->sortingDate.toSecsSinceEpoch();
+         }
+   };
+
    class PassesModel : public QAbstractListModel
    {
          enum RoleNames
@@ -44,7 +52,8 @@ namespace passes
 
          Q_OBJECT
          Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
-         Q_PROPERTY(QFont font READ getDefaultFont WRITE setDefaultFont)
+         Q_PROPERTY(int countExpired READ getCountExpired NOTIFY countExpiredChanged)
+         Q_PROPERTY(QFont defaultFont READ getDefaultFont WRITE setDefaultFont)
 
       public:
          static PassesModel* getInstace() { return instance; }
@@ -54,39 +63,48 @@ namespace passes
 
          // QAbstractListModel
 
-         QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-         int rowCount(const QModelIndex &parent = QModelIndex()) const;
+         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+         int rowCount(const QModelIndex& parent = QModelIndex()) const;
          QHash<int, QByteArray> roleNames() const;
 
          // QML interaction
 
-         Q_INVOKABLE void init();
+         Q_INVOKABLE QString init();
          Q_INVOKABLE void reload();
-         Q_INVOKABLE bool importPass(const QString& filePath);
-         Q_INVOKABLE bool deletePass(QString filePath);
 
-         QFont getDefaultFont() { return defaultFont; }
-         void setDefaultFont(QFont to) { defaultFont = to; pkpass.setDefaultFont(to); }
+         Q_INVOKABLE void showExpired();
+         Q_INVOKABLE void hideExpired();
+
+         Q_INVOKABLE QString importPass(const QString& filePath, bool expiredShown);
+         Q_INVOKABLE QString deletePass(QString filePath);
+
+         QFont getDefaultFont() { return QFont(); }
+         void setDefaultFont(QFont to) { pkpass.setDefaultFont(to); }
+         int getCountExpired() { return countExpired; }
 
          Pass* getPass(QString id) { return mItemMap.count(id) ? mItemMap[id] : nullptr; }
 
       signals:
-         void error(QString error);
          void countChanged();
+         void countExpiredChanged();
          void failedPasses(QVariantList passes);
 
       private:
+         void openPasses(bool openExired);
+         bool isOpen(const QString& filePath);
+
          QString getDataPath() const;
 
          static PassesModel* instance;
 
          bool storageReady;
+         int countExpired;
          Pkpass pkpass;
+         PassSorter passSorter;
 
          std::vector<Pass*> mItems;
          std::map<QString,Pass*> mItemMap;
          QDir passesDir;
-         QFont defaultFont;
    };
 
 } // namespace passes

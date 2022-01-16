@@ -97,6 +97,47 @@ Item {
       }
    }
 
+   Component {
+      id: errorDialogComponent
+
+      Dialog {
+         id: errorDialog
+//         title: i18n.tr("Failed to import pass")
+//         text: i18n.tr("Pass '%1' could not be imported (%2).")
+//         .arg(fileName)
+//         .arg(errorString)
+
+//         property string fileName
+//         property string errorString
+
+         Button {
+            text: i18n.tr("Close")
+            onClicked: {
+               PopupUtils.close(errorDialog)
+            }
+         }
+      }
+   }
+
+   Component {
+      id: storageErrorDialogComponent
+
+      Dialog {
+         id: storageErrorDialog
+         title: i18n.tr("Failed to init storage directory")
+         text: i18n.tr("Storage directory could not be initialized (%1).").arg(errorString)
+
+         property string errorString
+
+         Button {
+            text: i18n.tr("Close")
+            onClicked: {
+               PopupUtils.close(storageErrorDialog)
+            }
+         }
+      }
+   }
+
    function deleteDialog(parent) {
       return PopupUtils.open(deleteDialogComponent, parent);
    }
@@ -110,6 +151,13 @@ Item {
       var fileName = comps.length && comps[comps.length-1]
 
       return PopupUtils.open(invalidPassDialogComponent, null, { fileName: fileName, errorString: errorString });
+   }
 
+   function storageErrorDialog(parent, errorString) {
+      return PopupUtils.open(storageErrorDialogComponent, parent, { errorString: errorString });
+   }
+
+   function simpleErrorDialog(parent, title, text) {
+      return PopupUtils.open(errorDialogComponent, parent, { title: title, text: text });
    }
 }

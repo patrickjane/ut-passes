@@ -192,6 +192,7 @@ namespace passes
    {
          QString id;
          QDateTime modified;
+         QDateTime sortingDate;
          QString filePath;
 
          Standard standard;
@@ -230,8 +231,8 @@ namespace passes
    class Pkpass
    {
       public:
-         Pkpass(QFont defaultFont);
-         PassResult openPass(QString filePath);
+         Pkpass();
+         PassResult openPass(const QFileInfo& info);
 
          void setDefaultFont(QFont to) { defaultFont = to; }
 

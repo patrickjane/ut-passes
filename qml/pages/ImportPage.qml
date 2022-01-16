@@ -7,7 +7,7 @@ Page {
    property var activeTransfer
    property var url
 
-   signal imported(string fileUrl)
+   signal imported(var urls)
 
    header: PageHeader {
       title: i18n.tr("Import pass")
@@ -28,12 +28,9 @@ Page {
             if (!picker.activeTransfer)
                return
 
-            if (picker.activeTransfer.state === ContentTransfer.InProgress) {
-               picker.activeTransfer.items = picker.activeTransfer.items[0].url = url;
-               picker.activeTransfer.state = ContentTransfer.Charged;
-            }
             if (picker.activeTransfer.state === ContentTransfer.Charged) {
-               picker.imported(picker.activeTransfer.items[0].url)
+               var urls = Object.keys(picker.activeTransfer.items).map(function(k) { return picker.activeTransfer.items[k].url })
+               picker.imported(urls)
                picker.activeTransfer = null
                pageStack.pop()
             }

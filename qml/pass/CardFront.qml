@@ -202,7 +202,7 @@ Rectangle {
    Column {
       id: barcodeContent
       anchors.horizontalCenter: parent.horizontalCenter
-      anchors.bottom: infoIcon.top
+      anchors.bottom: infoIconRect.top
 
       PassBarcode {
          id: barcodeImage
@@ -226,22 +226,28 @@ Rectangle {
       }
    }
 
-   Icon {
-      id: infoIcon
+   Rectangle {
+      id: infoIconRect
       height: units.gu(3)
       width: units.gu(3)
       anchors.right: parent.right
       anchors.rightMargin: units.gu(2)
       anchors.bottom: parent.bottom
       anchors.bottomMargin: units.gu(2)
-      visible: selected
-      name: "info"
-      color: passCard.foregroundColor
+      color: backgroundColor
 
-      MouseArea {
+      Icon {
+         id: infoIcon
          anchors.fill: parent
-         onClicked: {
-            emit: infoButtonPressed()
+         visible: selected
+         name: "info"
+         color: passCard.foregroundColor
+
+         MouseArea {
+            anchors.fill: parent
+            onClicked: {
+               emit: infoButtonPressed()
+            }
          }
       }
    }
