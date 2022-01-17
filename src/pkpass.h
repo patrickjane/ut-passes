@@ -71,14 +71,8 @@ namespace passes
    {
          QString accessToken;
          QString url;
-
-         explicit operator QVariant() const
-         {
-            QVariantMap m;
-            m.insert("accessToken", accessToken);
-            m.insert("url", url);
-            return m;
-         }
+         QString passTypeIdentifier;
+         QString serialNumber;
    };
 
    struct Standard
@@ -90,11 +84,12 @@ namespace passes
          bool voided;
          bool expired;
 
-         Barcode barcode;
+         QList<Barcode> barcodes;
          QString backgroundColor;
          QString foregroundColor;
          QString labelColor;
          QString logoText;
+         QString barcodeFormat;
 
          explicit operator QVariant() const
          {
@@ -110,7 +105,15 @@ namespace passes
             m.insert("labelColor", labelColor);
             m.insert("logoText", logoText);
             m.insert("organization", organization);
-            m.insert("barcode", static_cast<QVariant>(barcode));
+            m.insert("barcodeFormat", barcodeFormat);
+
+            QVariantList codes;
+
+            for (const auto& barcode : barcodes)
+               codes << static_cast<QVariant>(barcode);
+
+            m.insert("barcodes", codes);
+
             return m;
          }
    };
@@ -151,36 +154,36 @@ namespace passes
 
             QVariantList fields;
 
-            for (const auto& barcode : headerFields)
-               fields << static_cast<QVariant>(barcode);
+            for (const auto& f : headerFields)
+               fields << static_cast<QVariant>(f);
 
             m.insert("headerFields", fields);
 
             fields.clear();
 
-            for (const auto& barcode : primaryFields)
-               fields << static_cast<QVariant>(barcode);
+            for (const auto& f : primaryFields)
+               fields << static_cast<QVariant>(f);
 
             m.insert("primaryFields", fields);
 
             fields.clear();
 
-            for (const auto& barcode : secondaryFields)
-               fields << static_cast<QVariant>(barcode);
+            for (const auto& f : secondaryFields)
+               fields << static_cast<QVariant>(f);
 
             m.insert("secondaryFields", fields);
 
             fields.clear();
 
-            for (const auto& barcode : auxiliaryFields)
-               fields << static_cast<QVariant>(barcode);
+            for (const auto& f : auxiliaryFields)
+               fields << static_cast<QVariant>(f);
 
             m.insert("auxiliaryFields", fields);
 
             fields.clear();
 
-            for (const auto& barcode : backFields)
-               fields << static_cast<QVariant>(barcode);
+            for (const auto& f : backFields)
+               fields << static_cast<QVariant>(f);
 
             m.insert("backFields", fields);
 
@@ -197,6 +200,7 @@ namespace passes
 
          Standard standard;
          PassStyle details;
+         WebService webservice;
 
          QImage imgBackground;
          QImage imgFooter;

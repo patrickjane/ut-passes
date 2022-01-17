@@ -67,7 +67,7 @@ namespace passes
       }
 
       passesDir.setPath(dir.path());
-//      passesDir.setPath("/home/phablet/passes");
+      passesDir.setPath("/home/phablet/passes");
       passesDir.setSorting(QDir::Time);
       storageReady = true;
 

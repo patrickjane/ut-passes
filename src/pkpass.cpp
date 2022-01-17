@@ -248,7 +248,22 @@ namespace passes
          translate(pass->standard.logoText);
       }
 
-      // only ever pick 1 barcode.
+      // parse webservice block
+
+      if (object.contains("authenticationToken") && object.contains("webServiceURL"))
+      {
+         pass->webservice.accessToken = object["authenticationToken"].toString();
+         pass->webservice.url = object["webServiceURL"].toString();
+         pass->webservice.passTypeIdentifier = object["passTypeIdentifier"].toString();
+         pass->webservice.serialNumber = object["serialNumber"].toString();
+
+         qDebug() << "WEBSERVICE: " << pass->webservice.accessToken
+                  << " " << pass->webservice.url
+                  << " " << pass->webservice.passTypeIdentifier
+                  << " " << pass->webservice.serialNumber;
+      }
+
+      // parse all contained barcodes
 
       if (object.contains("barcode"))
          return readPassBarcode(pass, object["barcode"].toObject());
@@ -256,7 +271,14 @@ namespace passes
       if (object.contains("barcodes"))
       {
          auto barcodes = object["barcodes"].toArray();
-         return readPassBarcode(pass, barcodes[0].toObject());
+
+         for (int i = 0; i < barcodes.size(); i++)
+         {
+            auto errString = readPassBarcode(pass, barcodes[i].toObject());
+
+            if (!errString.isEmpty())
+               return errString;
+         }
       }
 
       return "";
@@ -271,17 +293,29 @@ namespace passes
       if (object.isEmpty() || !object.contains("format") || !object.contains("message"))
          return C::gettext("Pass contains invalid/incomplete barcode information");
 
+      Barcode bc;
+
       QString format = object["format"].toString();
       QString message = object["message"].toString();
       QString encoding = object.contains("encoding") ? object["encoding"].toString() : QString();
       QString altText = object.contains("altText") ? object["altText"].toString() : QString();
 
-      pass->standard.barcode.format = format;
-      pass->standard.barcode.message = message;
-      pass->standard.barcode.encoding = encoding;
-      pass->standard.barcode.altText = altText;
+      bc.format = format;
+      bc.message = message;
+      bc.encoding = encoding;
+      bc.altText = altText;
 
-      return BarcodeGenerator::generate(message, format, &pass->standard.barcode.image);
+      auto errString = BarcodeGenerator::generate(message, format, &bc.image);
+
+      if (!errString.isEmpty())
+         return errString;
+
+      pass->standard.barcodes.push_back(std::move(bc));
+
+      if (pass->standard.barcodeFormat.isEmpty())
+         pass->standard.barcodeFormat = format;
+
+      return errString;
    }
 
    // **************************************************************************

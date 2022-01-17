@@ -5,6 +5,7 @@ Rectangle {
    id: barcodeImageItem
    property string passID
    property bool expired
+   property int index: 0
    radius: 10
 
    Image {
@@ -14,7 +15,7 @@ Rectangle {
       anchors.rightMargin: units.gu(3)
       anchors.topMargin: units.gu(3)
       anchors.bottomMargin: units.gu(3)
-      source: "image://passes/" + barcodeImageItem.passID + "/barcode"
+      source: "image://passes/" + barcodeImageItem.passID + "/barcode/" + index
    }
 
    BrightnessContrast {

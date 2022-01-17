@@ -39,7 +39,7 @@ namespace passes
 
       QStringList comps = id.split("/");
 
-      if (comps.size() != 2)
+      if (comps.size() < 2)
          return QImage();
 
       Pass* pass = model->getPass(comps[0]);
@@ -53,7 +53,19 @@ namespace passes
       if (comps[1] == "logo")       return pass->imgLogo;
       if (comps[1] == "strip")      return pass->imgStrip;
       if (comps[1] == "thumbnail")  return pass->imgThumbnail;
-      if (comps[1] == "barcode")    return pass->standard.barcode.image;
+
+      if (comps[1] == "barcode")
+      {
+         int index = 0;
+
+         if (comps.size() == 3)
+            index = comps[2].toInt();
+
+         if (index < 0 || index > pass->standard.barcodes.size())
+            return QImage();
+
+         return pass->standard.barcodes[index].image;
+      }
 
       return QImage();
    }

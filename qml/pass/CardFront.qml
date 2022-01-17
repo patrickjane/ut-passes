@@ -1,6 +1,7 @@
 import QtQuick 2.5
 import Ubuntu.Components 1.3
 import QtQuick.Layouts 1.11
+import QtQuick.Controls 2.11
 
 Rectangle {
    id: passCard
@@ -199,32 +200,61 @@ Rectangle {
 
    // the scannable code (QR, PDF417, Code128, Aztec)
 
-   Column {
+   ListView {
       id: barcodeContent
+
+      property double codeWidth: passCard.width * 0.6
+      property double codeHeight: (passCard.pass.standard.barcodeFormat === "PKBarcodeFormatQR"
+                                   || passCard.pass.standard.barcodeFormat === "PKBarcodeFormatAztec")
+                                  ? passCard.width * 0.6
+                                  : passCard.width * 0.3
+
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.bottom: infoIconRect.top
+      width: codeWidth
+      height: codeHeight + units.gu(3)
+      contentWidth: passCard.pass.standard.barcodes.length * barcodeContent.codeWidth
+      contentHeight: codeHeight + units.gu(3)
 
-      PassBarcode {
-         id: barcodeImage
-         anchors.horizontalCenter: parent.horizontalCenter
-         width: passCard.width * 0.6
-         height: (passCard.pass.standard.barcode.format === "PKBarcodeFormatQR"
-                  || passCard.pass.standard.barcode.format === "PKBarcodeFormatAztec")
-                 ? passCard.width * 0.6
-                 : passCard.width * 0.3
+      orientation: ListView.Horizontal
+      clip: true
+      highlightRangeMode: ListView.StrictlyEnforceRange
+      snapMode: ListView.SnapToItem
 
-         passID: passCard.pass.id
-         expired: passCard.pass.standard.expired
-      }
+      model: passCard.pass.standard.barcodes
 
-      Text {
-         anchors.horizontalCenter: parent.horizontalCenter
-         font.pointSize: units.gu(1)
-         text: passCard.pass.standard.barcode.altText
-         visible: !!passCard.pass.standard.barcode.altText
-         color: passCard.foregroundColor
+      delegate: Column {
+         PassBarcode {
+            id: barcodeImage
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: barcodeContent.codeWidth
+            height: barcodeContent.codeHeight
+
+            passID: passCard.pass.id
+            expired: passCard.pass.standard.expired
+            index: index
+         }
+
+         Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            font.pointSize: units.gu(1)
+            text: modelData.altText
+            visible: !!modelData.altText
+            color: passCard.foregroundColor
+         }
       }
    }
+
+   PageIndicator {
+      currentIndex: barcodeContent.currentIndex
+      count: passCard.pass.standard.barcodes.length
+
+      anchors.top: barcodeContent.bottom
+      anchors.horizontalCenter: parent.horizontalCenter
+      height: infoIconRect.height
+      visible: count > 1
+   }
+
 
    Rectangle {
       id: infoIconRect
