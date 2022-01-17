@@ -51,18 +51,23 @@ Page {
             iconName: "delete"
             visible: !!passesView.selectedCard
             onTriggered: {
-               var popup = Dialogs.deleteDialog(root)
+               var popup = Dialogs.showQuestionDialog(root,
+                                                      i18n.tr("Delete pass"),
+                                                      i18n.tr("Do you want to delete the pass from Passes? This operation cannot be undone."),
+                                                      i18n.tr("Delete"),
+                                                      i18n.tr("Cancel"),
+                                                      UbuntuColors.red)
 
                popup.accepted.connect(function() {
                   var passFile = passesView.selectedCard.pass.filePath;
                   passesView.dismissCard()
-                  var err = passesModel.deletePass(passFile)
+                  var err = passesModel.deletePass(passFile, false)
 
                   if (err) {
                      var comps = (passFile || "").split("/")
                      var fileName = comps.length && comps[comps.length-1]
 
-                     Dialogs.simpleErrorDialog(mainPage,
+                     Dialogs.showErrorDialog(mainPage,
                                                i18n.tr("Failed to delete pass"),
                                                i18n.tr("Pass '%1' could not be deleted (%2).")
                                                .arg(fileName)
@@ -122,10 +127,10 @@ Page {
          var err = passesModel.importPass(fileUrl, passesView.showExpiredPasses)
 
          if (err) {
-            var comps = (fileUrl || "").split("/")
+            var comps = ((fileUrl || "") + '').split("/")
             var fileName = comps.length && comps[comps.length-1]
 
-            Dialogs.simpleErrorDialog(mainPage,
+            Dialogs.showErrorDialog(mainPage,
                                       i18n.tr("Failed to import pass"),
                                       i18n.tr("Pass '%1' could not be imported (%2).")
                                       .arg(fileName)

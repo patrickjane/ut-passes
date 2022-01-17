@@ -76,7 +76,7 @@ namespace passes
          Q_INVOKABLE void hideExpired();
 
          Q_INVOKABLE QString importPass(const QString& filePath, bool expiredShown);
-         Q_INVOKABLE QString deletePass(QString filePath);
+         Q_INVOKABLE QString deletePass(QString filePath, bool failedPass);
 
          QFont getDefaultFont() { return QFont(); }
          void setDefaultFont(QFont to) { pkpass.setDefaultFont(to); }

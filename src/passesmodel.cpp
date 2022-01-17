@@ -358,9 +358,23 @@ namespace passes
    // deletePass
    // **************************************************************************
 
-   QString PassesModel::deletePass(QString filePath)
+   QString PassesModel::deletePass(QString filePath, bool failedPass)
    {
       qDebug() << "Deleting pass " << filePath;
+
+      if (failedPass)
+      {
+         if (!QFile::exists(filePath))
+            return C::gettext("Failed to delete pass (pass unknown)");
+
+         QFile passFile(filePath);
+         bool res = passFile.remove();
+
+         if (!res)
+            return QString(C::gettext("Failed to delete pass from storage directory (%1)")).arg(passFile.errorString());
+
+         return "";
+      }
 
       auto it = std::find_if(mItems.begin(), mItems.end(), [&filePath](Pass* pass) { return pass->filePath == filePath; });
 

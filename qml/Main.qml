@@ -27,21 +27,66 @@ MainView {
 
    Text { id: text; font.pointSize: units.gu(1) }
 
+   Timer {
+      id: initErrorTimer
+      interval: 100
+      repeat: false
+      running: !!errorString
+
+      property string errorString: ""
+
+      onTriggered: {
+         Dialogs.showErrorDialog(root,
+                                 i18n.tr("Failed to init storage directory"),
+                                 i18n.tr("Storage directory could not be initialized (%1).").arg(errorString))
+      }
+   }
+
+   Timer {
+      id: failedPassesTimer
+      interval: 100
+      repeat: false
+      running: !!failedPasses
+
+      property var failedPasses
+
+      onTriggered: {
+         failedPasses.forEach(function(pass) {
+            var popup = Dialogs.showQuestionDialog(root,
+                                                   i18n.tr("Failed to open pass"),
+                                                   i18n.tr("Pass '%1' could not be opened (%2). Do you want to delete the pass from storage? This operation cannot be undone.")
+                                                   .arg(pass.filePath)
+                                                   .arg(pass.error),
+                                                   i18n.tr("Delete"),
+                                                   i18n.tr("Cancel"),
+                                                   UbuntuColors.red)
+
+            popup.accepted.connect(function() {
+               var err = passesModel.deletePass(pass.filePath, true)
+
+               if (err) {
+                  var comps = (pass.filePath || "").split("/")
+                  var fileName = comps.length && comps[comps.length-1]
+
+                  Dialogs.showErrorDialog(mainPage,
+                                            i18n.tr("Failed to delete pass"),
+                                            i18n.tr("Pass '%1' could not be deleted (%2).")
+                                            .arg(fileName)
+                                            .arg(err))
+               }
+            })
+         })
+      }
+   }
+
    PassesModel {
       id: passesModel
 
       defaultFont: text.font
 
       onFailedPasses: {
-         console.log(JSON.stringify(passes))
-
-         passes.forEach(function(pass) {
-            var popup = Dialogs.invalidPassDialog(root, pass.filePath, pass.error)
-
-            popup.accepted.connect(function() {
-               passesModel.deletePass(filePath)
-            })
-         })
+         console.log("FAILED PASSES:", JSON.stringify(passes))
+         failedPassesTimer.failedPasses = passes
       }
    }
 
@@ -51,24 +96,16 @@ MainView {
       onImportRequested: {
          var filePath = String(transfer.items[0].url).replace('file://', '')
          var fileName = filePath.split("/").pop();
-         var popup = Dialogs.addDialog(root, fileName)
+         var popup = Dialogs.showQuestionDialog(root,
+                                                i18n.tr("Add pass"),
+                                                i18n.tr("Do you want to add '%1' to Passes?").arg(fileName),
+                                                i18n.tr("Add"),
+                                                i18n.tr("Cancel"),
+                                                UbuntuColors.green)
 
          popup.accepted.connect(function() {
             passesModel.importPass(filePath)
          })
-      }
-   }
-
-   Timer {
-      property string errorString: ""
-
-      id: initErrorTimer
-      interval: 100
-      repeat: false
-      running: !!errorString
-
-      onTriggered: {
-         Dialogs.storageErrorDialog(root, errorString)
       }
    }
 
