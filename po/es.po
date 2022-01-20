@@ -1,0 +1,272 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the passes.s710 package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: passes.s710\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-01-20 15:11+0000\n"
+"PO-Revision-Date: 2022-01-20 23:35+0100\n"
+"Language-Team: UBports Spanish Team\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.2\n"
+"Last-Translator: Josu\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: es\n"
+
+#: ../qml/Main.qml:47 ../qml/util/Dialogs.qml:58
+msgid "Failed to init storage directory"
+msgstr "Fallo al inicializar el directorio de almacenamiento"
+
+#: ../qml/Main.qml:48 ../qml/util/Dialogs.qml:59
+msgid "Storage directory could not be initialized (%1)."
+msgstr "El directorio de almacenamiento no se ha podido inicializar (%1)."
+
+#: ../qml/Main.qml:56
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:320
+msgid "Failed to open pass"
+msgstr "Fallo al abrir pase"
+
+#: ../qml/Main.qml:57
+msgid ""
+"Pass '%1' could not be opened (%2). Do you want to delete the pass from "
+"storage? This operation cannot be undone."
+msgstr ""
+"Pase '%1' No puede ser abierto (%2) ¿Desea borrar el pass del "
+"almacenamiento? Esta operación no se puede deshacer."
+
+#: ../qml/Main.qml:60 ../qml/pages/MainPage.qml:88
+msgid "Delete"
+msgstr "Borrar"
+
+#: ../qml/Main.qml:61 ../qml/Main.qml:110 ../qml/pages/MainPage.qml:47
+#: ../qml/pages/MainPage.qml:89 ../qml/util/Dialogs.qml:14
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: ../qml/Main.qml:72 ../qml/pages/MainPage.qml:102
+msgid "Failed to delete pass"
+msgstr "Fallo al borrar pase"
+
+#: ../qml/Main.qml:73 ../qml/pages/MainPage.qml:103
+msgid "Pass '%1' could not be deleted (%2)."
+msgstr "Pase '%1' No ha podido ser borrado (%2)."
+
+#: ../qml/Main.qml:107
+msgid "Add pass"
+msgstr "Añadir pase"
+
+#: ../qml/Main.qml:108
+msgid "Do you want to add '%1' to Passes?"
+msgstr "¿Desea añadir '%1' a Passes?"
+
+#: ../qml/Main.qml:109
+msgid "Add"
+msgstr "Añadir"
+
+#: ../qml/pages/ImportPage.qml:13
+msgid "Import pass"
+msgstr "Importar pase"
+
+#: ../qml/pages/MainPage.qml:21 Passes.desktop.in.h:1
+msgid "Passes"
+msgstr "Passes"
+
+#: ../qml/pages/MainPage.qml:44
+msgid "Fetch pass updates"
+msgstr "Buscar actualizaciones de pases"
+
+#: ../qml/pages/MainPage.qml:45
+msgid "Do you want to search for pass updates?"
+msgstr "¿Desea buscar actualizaciones de los pases?"
+
+#: ../qml/pages/MainPage.qml:46
+msgid "Fetch updates"
+msgstr "Buscar actualizaciones"
+
+#: ../qml/pages/MainPage.qml:86
+msgid "Delete pass"
+msgstr "Borrar pase"
+
+#: ../qml/pages/MainPage.qml:87
+msgid ""
+"Do you want to delete the pass from Passes? This operation cannot be undone."
+msgstr "¿Desea borrar el pase de Passes? Esta operación no se puede deshacer."
+
+#: ../qml/pages/MainPage.qml:165
+msgid "All passes have expired"
+msgstr "Todos los pases han caducado."
+
+#: ../qml/pages/MainPage.qml:166
+msgid "No passes have been added yet"
+msgstr "Todavía no se han añadido pases."
+
+#: ../qml/pages/MainPage.qml:171
+msgid "Add new pass"
+msgstr "Añadir nuevo pase"
+
+#: ../qml/pages/MainPage.qml:189
+msgid "Failed to import pass"
+msgstr "Fallo al importar pase"
+
+#: ../qml/pages/MainPage.qml:190
+msgid "Pass '%1' could not be imported (%2)."
+msgstr "Pase '%1' no ha podido ser importado (%2)."
+
+#: ../qml/pages/SettingsPage.qml:21
+msgid "Settings"
+msgstr "Ajustes"
+
+#: ../qml/pages/SettingsPage.qml:44
+msgid "Updates"
+msgstr "Actualizaciones"
+
+#: ../qml/pages/SettingsPage.qml:58
+msgid "Fetch pass updates upon app start"
+msgstr "Buscar actualizaciones de los pases al iniciar la aplicación"
+
+#: ../qml/pages/SettingsPage.qml:80
+msgid "Fetch pass updates at regular intervals"
+msgstr "Buscar actualizaciones de los pases a intervalos regulares"
+
+#: ../qml/pages/SettingsPage.qml:127
+msgid "%1 minute"
+msgstr "%1 minuto"
+
+#: ../qml/pages/SettingsPage.qml:127
+msgid "%1 minutes"
+msgstr "%1 minutos"
+
+#: ../qml/pages/SharePage.qml:11
+msgid "Share pass"
+msgstr "Compartir pase"
+
+#: ../qml/pass/PassBarcode.qml:34
+msgid "This pass has expired"
+msgstr "Este pase ha caducado"
+
+#: ../qml/pass/PassesView.qml:70
+msgid "Hide %1 expired passes"
+msgstr "Ocultar %1 pases caducados"
+
+#: ../qml/pass/PassesView.qml:71
+msgid "Show %1 expired passes"
+msgstr "Mostrar %1 pases caducados"
+
+#: ../qml/util/Dialogs.qml:13
+msgid "Okay"
+msgstr "Vale"
+
+#: ../qml/util/Dialogs.qml:45 ../qml/util/Dialogs.qml:64
+msgid "Close"
+msgstr "Cerrar"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/barcode.cpp:66
+msgid "Unknown barcode format"
+msgstr "Formato de código de barras desconocido"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:55
+msgid "Failed to determine writable app data storage location"
+msgstr ""
+"Fallo al determinar la ubicación de almacenamiento de escritura de datos de "
+"la aplicación"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:64
+msgid "App data storage location inaccessible"
+msgstr "La ubicación de almacenamiento de la aplicación no está accesible"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:65
+msgid "can't create subfolder:"
+msgstr "No se puede crear subcarpeta:"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:291
+msgid "Storage directory inaccessible, cannot import pass"
+msgstr "No se puede importar el pase, carpeta de almacenamiento inaccesible"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:294
+msgid "File path of the pass seems to be invalid"
+msgstr "Ruta del archivo del pase parece ser inválida"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:300
+msgid "Same pass has already been imported"
+msgstr "El mismo pase ya estaba importado"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:306
+msgid "Failed to import pass into storage directory "
+msgstr "Fallo al importar el pase en el directorio de almacenamiento"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:327
+msgid "Pass with the same barcode has already been imported"
+msgstr "Ya se había importado un pase con el mismo código de barras"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:361
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:375
+msgid "Failed to delete pass (pass unknown)"
+msgstr "Fallo al borrar el pase (pase desconocido)"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:367
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:382
+msgid "Failed to delete pass from storage directory (%1)"
+msgstr "Fallo al borrar pase del directorio de almacenamiento (%1)"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:449
+msgid "Failed to fetch pass updates (no webservice info available)"
+msgstr ""
+"Fallo al buscar actualizaciones del pase (no hay información sobre el "
+"servicio web)"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:463
+msgid "Loading pass update failed (Network error: %1/%2)"
+msgstr "Fallo cargando actualización de pase (Error de red: %1/%2)"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:478
+msgid "Failed to save pass update to storage / could not open file (%1)"
+msgstr ""
+"Fallo al guardar actualización del pase / no se puede abrir archivo (%1)"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:483
+msgid "Failed to save pass update to storage / could not write file (%1)"
+msgstr ""
+"Fallo al guardar la actualización del pase / no se pudo escribir el archivo "
+"(%1)"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:500
+msgid ""
+"Failed to save pass update to storage / could replace existing pass (%1)"
+msgstr ""
+"Fallo al guardar la actualización del pase / se pudo reemplazar el pase "
+"existente (%1)"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:93
+msgid "Archive does not contain a valid pass"
+msgstr "El archivo no contiene un pase valido"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:145
+msgid "Pass information is invalid (empty)"
+msgstr "La información del pase no es válida (vacío)"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:198
+msgid "Pass information is invalid"
+msgstr "La información del pase no es válida"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:210
+msgid "Pass information is invalid (missing description/organization key(s))"
+msgstr ""
+"La información del pase no es válida (descripción desaparecida/organización "
+"de llave(s))"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:301
+msgid "Pass contains invalid/incomplete barcode information"
+msgstr "El pase contiene información del código de barras inválida/incompleta"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:391
+msgid "Pass contains invalid/incomplete fields"
+msgstr "El pase contiene campos inválidos/incompletos"
+
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:492
+msgid "Pass contains invalid/incomplete image data"
+msgstr "El pase contiene datos de imagen inválidos/incompletos"
