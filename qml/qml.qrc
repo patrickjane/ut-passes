@@ -19,5 +19,6 @@
         <file>pages/SharePage.qml</file>
         <file>util/Dialogs.qml</file>
         <file>util/qmldir</file>
+        <file>pages/SettingsPage.qml</file>
     </qresource>
 </RCC>

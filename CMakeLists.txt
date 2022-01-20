@@ -3,6 +3,8 @@ project(Passes C CXX)
 
 # Automatically create moc files
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_STANDARD 14)
 
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Qml REQUIRED)
@@ -48,7 +50,7 @@ install(FILES assets/logo.svg DESTINATION assets)
 
 qt5_add_resources(QT_RESOURCES qml/qml.qrc)
 qt5_add_resources(QT_RESOURCES assets/assets.qrc)
-add_executable(${PROJECT_NAME} main.cpp src/passesmodel.cpp src/pkpass.cpp src/passimageprovider.cpp src/passimageprovider.h src/barcode.cpp src/barcode.h ${QT_RESOURCES})
+add_executable(${PROJECT_NAME} main.cpp src/passesmodel.cpp src/pkpass.cpp src/passimageprovider.cpp src/passimageprovider.h src/barcode.cpp src/barcode.h src/network.cpp src/network.h src/async.hpp ${QT_RESOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE -s)
 target_link_libraries(${PROJECT_NAME} Qt5::Gui Qt5::Qml Qt5::Quick Qt5::QuickControls2)
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX})

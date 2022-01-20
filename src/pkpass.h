@@ -29,6 +29,7 @@
 #include <QJsonDocument>
 #include <QRegExp>
 #include <QFont>
+#include <QFileInfo>
 
 #include "quazip/quazip.h"
 
@@ -71,8 +72,16 @@ namespace passes
    {
          QString accessToken;
          QString url;
-         QString passTypeIdentifier;
-         QString serialNumber;
+         bool webserviceBroken;
+
+         explicit operator QVariant() const
+         {
+            QVariantMap m;
+            m.insert("url", url);
+            m.insert("webserviceBroken", webserviceBroken);
+
+            return m;
+         }
    };
 
    struct Standard
@@ -201,6 +210,7 @@ namespace passes
          Standard standard;
          PassStyle details;
          WebService webservice;
+         QString updateError;
 
          QImage imgBackground;
          QImage imgFooter;
@@ -217,6 +227,8 @@ namespace passes
             m.insert("filePath", filePath);
             m.insert("standard", static_cast<QVariant>(standard));
             m.insert("details", static_cast<QVariant>(details));
+            m.insert("webservice", static_cast<QVariant>(webservice));
+            m.insert("updateError", updateError);
 
             return m;
          }

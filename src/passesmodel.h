@@ -28,6 +28,7 @@
 #include <QFont>
 
 #include "pkpass.h"
+#include "network.h"
 
 // **************************************************************************
 // class PassesModel
@@ -42,6 +43,9 @@ namespace passes
             return a->sortingDate.toSecsSinceEpoch() > b->sortingDate.toSecsSinceEpoch();
          }
    };
+
+   template<typename T>
+   using ResultCallback = std::function<void(QString, T)>;
 
    class PassesModel : public QAbstractListModel
    {
@@ -72,6 +76,8 @@ namespace passes
          Q_INVOKABLE QString init();
          Q_INVOKABLE void reload();
 
+         Q_INVOKABLE void fetchPassUpdates();
+
          Q_INVOKABLE void showExpired();
          Q_INVOKABLE void hideExpired();
 
@@ -87,10 +93,15 @@ namespace passes
       signals:
          void countChanged();
          void countExpiredChanged();
+         void passUpdatesFetched(QString error);
          void failedPasses(QVariantList passes);
 
       private:
          void openPasses(bool openExired);
+         void fetchPassUpdate(Pass* pass, ResultCallback<Pass*> callback);
+
+         PassResult storePassUpdate(Pass* pass, QByteArray data);
+
          bool isOpen(const QString& filePath);
 
          QString getDataPath() const;
@@ -105,6 +116,8 @@ namespace passes
          std::vector<Pass*> mItems;
          std::map<QString,Pass*> mItemMap;
          QDir passesDir;
+
+         network::Network net;
    };
 
 } // namespace passes

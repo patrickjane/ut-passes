@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: passes.s710\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-17 10:40+0000\n"
+"POT-Creation-Date: 2022-01-20 14:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../qml/Main.qml:40 ../qml/util/Dialogs.qml:58
+#: ../qml/Main.qml:47 ../qml/util/Dialogs.qml:58
 msgid "Failed to init storage directory"
 msgstr ""
 
-#: ../qml/Main.qml:41 ../qml/util/Dialogs.qml:59
+#: ../qml/Main.qml:48 ../qml/util/Dialogs.qml:59
 msgid "Storage directory could not be initialized (%1)."
 msgstr ""
 
@@ -35,32 +35,32 @@ msgid ""
 "storage? This operation cannot be undone."
 msgstr ""
 
-#: ../qml/Main.qml:60 ../qml/pages/MainPage.qml:57
+#: ../qml/Main.qml:60 ../qml/pages/MainPage.qml:88
 msgid "Delete"
 msgstr ""
 
-#: ../qml/Main.qml:61 ../qml/Main.qml:103 ../qml/pages/MainPage.qml:58
-#: ../qml/util/Dialogs.qml:14
+#: ../qml/Main.qml:61 ../qml/Main.qml:110 ../qml/pages/MainPage.qml:47
+#: ../qml/pages/MainPage.qml:89 ../qml/util/Dialogs.qml:14
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/Main.qml:72 ../qml/pages/MainPage.qml:71
+#: ../qml/Main.qml:72 ../qml/pages/MainPage.qml:102
 msgid "Failed to delete pass"
 msgstr ""
 
-#: ../qml/Main.qml:73 ../qml/pages/MainPage.qml:72
+#: ../qml/Main.qml:73 ../qml/pages/MainPage.qml:103
 msgid "Pass '%1' could not be deleted (%2)."
 msgstr ""
 
-#: ../qml/Main.qml:100
+#: ../qml/Main.qml:107
 msgid "Add pass"
 msgstr ""
 
-#: ../qml/Main.qml:101
+#: ../qml/Main.qml:108
 msgid "Do you want to add '%1' to Passes?"
 msgstr ""
 
-#: ../qml/Main.qml:102
+#: ../qml/Main.qml:109
 msgid "Add"
 msgstr ""
 
@@ -68,37 +68,69 @@ msgstr ""
 msgid "Import pass"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:22 Passes.desktop.in.h:1
+#: ../qml/pages/MainPage.qml:21 Passes.desktop.in.h:1
 msgid "Passes"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:55
+#: ../qml/pages/MainPage.qml:44
+msgid "Fetch pass updates"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:45
+msgid "Do you want to search for pass updates?"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:46
+msgid "Fetch updates"
+msgstr ""
+
+#: ../qml/pages/MainPage.qml:86
 msgid "Delete pass"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:56
+#: ../qml/pages/MainPage.qml:87
 msgid ""
 "Do you want to delete the pass from Passes? This operation cannot be undone."
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:110
+#: ../qml/pages/MainPage.qml:165
 msgid "All passes have expired"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:111
+#: ../qml/pages/MainPage.qml:166
 msgid "No passes have been added yet"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:116
+#: ../qml/pages/MainPage.qml:171
 msgid "Add new pass"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:134
+#: ../qml/pages/MainPage.qml:189
 msgid "Failed to import pass"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:135
+#: ../qml/pages/MainPage.qml:190
 msgid "Pass '%1' could not be imported (%2)."
+msgstr ""
+
+#: ../qml/pages/SettingsPage.qml:21
+msgid "Settings"
+msgstr ""
+
+#: ../qml/pages/SettingsPage.qml:44
+msgid "Updates"
+msgstr ""
+
+#: ../qml/pages/SettingsPage.qml:58
+msgid "Fetch pass updates upon app start"
+msgstr ""
+
+#: ../qml/pages/SettingsPage.qml:80
+msgid "Fetch pass updates at regular intervals"
+msgstr ""
+
+#: ../qml/pages/SettingsPage.qml:127
+msgid "%1 minute"
 msgstr ""
 
 #: ../qml/pages/SharePage.qml:11
@@ -109,11 +141,11 @@ msgstr ""
 msgid "This pass has expired"
 msgstr ""
 
-#: ../qml/pass/PassesView.qml:52
+#: ../qml/pass/PassesView.qml:70
 msgid "Hide %1 expired passes"
 msgstr ""
 
-#: ../qml/pass/PassesView.qml:53
+#: ../qml/pass/PassesView.qml:71
 msgid "Show %1 expired passes"
 msgstr ""
 

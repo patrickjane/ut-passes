@@ -18,8 +18,16 @@ MainView {
    applicationName: 'passes.s710'
    automaticOrientation: false
 
+   property string initError: ""
+   property var failedPasses: undefined
+
    width: units.gu(45)
    height: units.gu(75)
+
+   Settings {
+      id: settings
+      property bool updateAtStartup: true
+   }
 
    Notification {
       notificationId: "mainNotification"
@@ -28,54 +36,54 @@ MainView {
    Text { id: text; font.pointSize: units.gu(1) }
 
    Timer {
-      id: initErrorTimer
-      interval: 100
+      id: initTimer
+      interval: 200
       repeat: false
-      running: !!errorString
-
-      property string errorString: ""
+      running: false
 
       onTriggered: {
-         Dialogs.showErrorDialog(root,
-                                 i18n.tr("Failed to init storage directory"),
-                                 i18n.tr("Storage directory could not be initialized (%1).").arg(errorString))
-      }
-   }
+         if (root.initError) {
+            Dialogs.showErrorDialog(root,
+                                    i18n.tr("Failed to init storage directory"),
+                                    i18n.tr("Storage directory could not be initialized (%1).").arg(root.initError))
 
-   Timer {
-      id: failedPassesTimer
-      interval: 100
-      repeat: false
-      running: !!failedPasses
+            return
+         }
 
-      property var failedPasses
+         if (root.failedPasses && root.failedPasses.length) {
+            root.failedPasses.forEach(function(pass) {
+               var popup = Dialogs.showQuestionDialog(root,
+                                                      i18n.tr("Failed to open pass"),
+                                                      i18n.tr("Pass '%1' could not be opened (%2). Do you want to delete the pass from storage? This operation cannot be undone.")
+                                                      .arg(pass.filePath)
+                                                      .arg(pass.error),
+                                                      i18n.tr("Delete"),
+                                                      i18n.tr("Cancel"),
+                                                      UbuntuColors.red)
 
-      onTriggered: {
-         failedPasses.forEach(function(pass) {
-            var popup = Dialogs.showQuestionDialog(root,
-                                                   i18n.tr("Failed to open pass"),
-                                                   i18n.tr("Pass '%1' could not be opened (%2). Do you want to delete the pass from storage? This operation cannot be undone.")
-                                                   .arg(pass.filePath)
-                                                   .arg(pass.error),
-                                                   i18n.tr("Delete"),
-                                                   i18n.tr("Cancel"),
-                                                   UbuntuColors.red)
+               popup.accepted.connect(function() {
+                  var err = passesModel.deletePass(pass.filePath, true)
 
-            popup.accepted.connect(function() {
-               var err = passesModel.deletePass(pass.filePath, true)
+                  if (err) {
+                     var comps = (pass.filePath || "").split("/")
+                     var fileName = comps.length && comps[comps.length-1]
 
-               if (err) {
-                  var comps = (pass.filePath || "").split("/")
-                  var fileName = comps.length && comps[comps.length-1]
-
-                  Dialogs.showErrorDialog(mainPage,
-                                            i18n.tr("Failed to delete pass"),
-                                            i18n.tr("Pass '%1' could not be deleted (%2).")
-                                            .arg(fileName)
-                                            .arg(err))
-               }
+                     Dialogs.showErrorDialog(mainPage,
+                                               i18n.tr("Failed to delete pass"),
+                                               i18n.tr("Pass '%1' could not be deleted (%2).")
+                                               .arg(fileName)
+                                               .arg(err))
+                  }
+               })
             })
-         })
+
+            return
+         }
+
+         // everything went well. fetch pass updates, if configured
+
+         if (settings.updateAtStartup)
+            passesModel.fetchPassUpdates()
       }
    }
 
@@ -85,8 +93,7 @@ MainView {
       defaultFont: text.font
 
       onFailedPasses: {
-         console.log("FAILED PASSES:", JSON.stringify(passes))
-         failedPassesTimer.failedPasses = passes
+         root.failedPasses = passes
       }
    }
 
@@ -118,12 +125,12 @@ MainView {
       Component.onCompleted: {
          push(mainPage)
 
-         var err = passesModel.init()
+         root.initError = passesModel.init()
 
-         initErrorTimer.errorString = err
-
-         if (!err)
+         if (!root.initError)
             passesModel.reload()
+
+         initTimer.start()
       }
 
       MainPage {

@@ -23,6 +23,8 @@
 #include <QStandardPaths>
 #include <QDebug>
 
+#include "async.hpp"
+
 namespace C {
 #include <libintl.h>
 }
@@ -52,8 +54,6 @@ namespace passes
       if (!dataPath.size())
          return C::gettext("Failed to determine writable app data storage location");
 
-      qDebug() << "DATA PATH: " << dataPath;
-
       QDir dir(dataPath + "/passes");
 
       if (!dir.exists())
@@ -67,7 +67,7 @@ namespace passes
       }
 
       passesDir.setPath(dir.path());
-      passesDir.setPath("/home/phablet/passes");
+//      passesDir.setPath("/home/phablet/passes");
       passesDir.setSorting(QDir::Time);
       storageReady = true;
 
@@ -196,10 +196,7 @@ namespace passes
             continue;
 
          if (isOpen(info.absoluteFilePath()))
-         {
-            qDebug() << "Skipping open of already opened pass " << info.absoluteFilePath();
             continue;
-         }
 
          auto passResult = pkpass.openPass(info.absoluteFilePath());
 
@@ -299,8 +296,6 @@ namespace passes
       QFileInfo info(fp);
       QString targetPath = passesDir.path() + "/" + info.fileName();
 
-      qDebug() << "Importing pass: " << fp << " To: " << targetPath;
-
       if (QFile::exists(targetPath))
          return C::gettext("Same pass has already been imported");
 
@@ -360,8 +355,6 @@ namespace passes
 
    QString PassesModel::deletePass(QString filePath, bool failedPass)
    {
-      qDebug() << "Deleting pass " << filePath;
-
       if (failedPass)
       {
          if (!QFile::exists(filePath))
@@ -404,4 +397,114 @@ namespace passes
       emit countChanged();
       return "";
    }
+
+   // **************************************************************************
+   // fetchPassUpdates (ALL passes)
+   // **************************************************************************
+
+   void PassesModel::fetchPassUpdates()
+   {
+      async::eachSeries<Pass*>(mItems, [this](Pass* pass, auto next, int index)
+      {
+         if (pass->webservice.accessToken.isEmpty() || pass->webservice.webserviceBroken)
+            return next("");
+
+         this->fetchPassUpdate(pass, [this, pass, index, next](QString err, Pass* newPass)
+         {
+            auto modelIndex = this->createIndex(index, 0);
+
+            pass->updateError = "";
+
+            if (err.isEmpty() && newPass)
+            {
+               mItemMap.erase(pass->id);
+               mItemMap[newPass->id] = newPass;
+               mItems[index] = newPass;
+               delete pass;
+
+               this->emit dataChanged(modelIndex, modelIndex);
+            }
+            else if (!err.isEmpty())
+            {
+               pass->updateError = err;
+               this->emit dataChanged(modelIndex, modelIndex);
+            }
+
+            return next("");
+         });
+      },
+      [this](QString err)
+      {
+         emit passUpdatesFetched(err);
+      });
+   }
+
+   // **************************************************************************
+   // fetchPassUpdate
+   // **************************************************************************
+
+   void PassesModel::fetchPassUpdate(Pass* pass, ResultCallback<Pass*> callback)
+   {
+      if (!pass || pass->webservice.url.isEmpty() || pass->webservice.accessToken.isEmpty())
+         return callback(C::gettext("Failed to fetch pass updates (no webservice info available)"), nullptr);
+
+      network::ReqHeaders headers;
+      headers["Authorization"] = "ApplePass " + pass->webservice.accessToken;
+
+      net.get<network::ReqCallback>(QUrl(pass->webservice.url), headers, [this, callback, pass](int err, int code, QByteArray body)
+      {
+         if (err != QNetworkReply::NoError || code != 200 || body.isEmpty())
+         {
+            if (err == QNetworkReply::NoError && (code <= 299 || code >= 200))
+               return callback("", nullptr);
+
+            pass->webservice.webserviceBroken = true;
+
+            return callback(QString(C::gettext("Loading pass update failed (Network error: %1/%2)")).arg(err).arg(code), nullptr);
+         }
+
+         // try to open the payload (= new pass)
+         // if successful, swap pass objects in model & on filesystem and delete the old one.
+
+         PassResult res;
+         res.pass = nullptr;
+
+         auto tempFileName = pass->filePath + ".tmp";
+         QFile tempFile(tempFileName);
+
+         auto fileRes = tempFile.open(QIODevice::WriteOnly | QIODevice::Truncate);
+
+         if (!fileRes)
+            return callback(QString(C::gettext("Failed to save pass update to storage / could not open file (%1)")).arg(tempFile.errorString()), nullptr);
+
+         fileRes = tempFile.write(body);
+
+         if (!fileRes)
+            return callback(QString(C::gettext("Failed to save pass update to storage / could not write file (%1)")).arg(tempFile.errorString()), nullptr);
+
+         tempFile.close();
+
+         QFileInfo info(tempFileName);
+
+         res = pkpass.openPass(info);
+
+         if (res.err.isEmpty() && res.pass)
+         {
+            QFile::remove(pass->filePath);
+
+            fileRes = tempFile.rename(pass->filePath);
+
+            if (!fileRes)
+            {
+               delete res.pass;
+               return callback(QString(C::gettext("Failed to save pass update to storage / could replace existing pass (%1)")).arg(tempFile.errorString()), nullptr);
+            }
+         }
+         else
+            QFile::remove(tempFileName);
+
+         return callback(res.err, res.pass);
+      });
+   }
+
 } // namespace passes

@@ -14,7 +14,6 @@ import PassesModel 1.0
 Page {
    id: mainPage
    property var passesModel
-
    anchors.fill: parent
 
    header: PageHeader {
@@ -22,6 +21,11 @@ Page {
       title: i18n.tr('Passes')
 
       trailingActionBar.actions: [
+         Action {
+            iconName: "close"
+            visible: !!passesView.selectedCard
+            onTriggered: passesView.dismissCard()
+         },
          Action {
             iconName: "import"
             visible: !passesView.selectedCard
@@ -31,9 +35,38 @@ Page {
             }
          },
          Action {
-            iconName: "close"
-            visible: !!passesView.selectedCard
-            onTriggered: passesView.dismissCard()
+            iconName: "view-refresh"
+            visible: !passesView.selectedCard
+            enabled: passesModel.count > 0 && !passesView.selectedCard
+
+            onTriggered: {
+               var popup = Dialogs.showQuestionDialog(mainPage,
+                                          i18n.tr("Fetch pass updates"),
+                                          i18n.tr("Do you want to search for pass updates?"),
+                                          i18n.tr("Fetch updates"),
+                                          i18n.tr("Cancel"),
+                                          UbuntuColors.green)
+
+               popup.accepted.connect(function() {
+                  passesView.showActivity = true
+                  passesModel.fetchPassUpdates()
+               })
+            }
+         },
+         Action {
+            iconName: "settings"
+            visible: !passesView.selectedCard
+            onTriggered: {
+               var settingsPage = pageStack.push(Qt.resolvedUrl("SettingsPage.qml"), {})
+
+               settingsPage.updateIntervalChanged.connect(function(interval, enabled) {
+                  fetchUpdatesTimer.running = enabled
+                  fetchUpdatesTimer.interval = interval * 60000
+
+                  if (enabled)
+                     fetchUpdatesTimer.restart()
+               })
+            }
          },
          Action {
             iconName: "share"
@@ -43,8 +76,6 @@ Page {
 
                if (passFile)
                   pageStack.push(Qt.resolvedUrl("SharePage.qml"), { url: "file://" + passFile })
-               else
-                  console.log("No filepath for pass", passesView.selectedCard.pass.id)
             }
          },
          Action {
@@ -77,6 +108,30 @@ Page {
             }
          }
       ]
+   }
+
+   Connections {
+      target: passesModel
+      onPassUpdatesFetched: {
+         passesView.showActivity = false
+      }
+   }
+
+   Settings {
+      id: settings
+      property bool updateAtInterval: true
+      property double updateInterval: 15
+   }
+
+   Timer {
+      id: fetchUpdatesTimer
+      interval: settings.updateInterval * 60000
+      repeat: true
+      running: settings.updateAtInterval
+
+      onTriggered: {
+         passesModel.fetchPassUpdates()
+      }
    }
 
    PassesView {

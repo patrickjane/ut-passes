@@ -11,6 +11,7 @@ Rectangle {
    property double topMargin: (height-cardHeight)/2
    property double cardPeekHeight: units.gu(8)
    property bool showExpiredPasses: false
+   property bool showActivity: false
 
    color: "#efefef"
 
@@ -39,12 +40,29 @@ Rectangle {
 
    Rectangle {
       anchors.top: parent.top
-      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.left: parent.left
+      anchors.right: parent.right
       height: topMargin
       color: "transparent"
 
-      Button {
+      Rectangle {
+         anchors.verticalCenter: parent.verticalCenter
+         anchors.left: parent.left
+         anchors.leftMargin: (parent.width - view.cardWidth) / 2
+         color: "transparent"
 
+         height: parent.height
+         width: parent.height
+
+         ActivityIndicator {
+            id: activity
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+            running: view.showActivity
+         }
+      }
+
+      Button {
          anchors.verticalCenter: parent.verticalCenter
          anchors.horizontalCenter: parent.horizontalCenter
          visible: model.countExpired > 0 && !view.selectedCard
@@ -109,6 +127,29 @@ Rectangle {
       repeat: false
       running: false
       onTriggered: afterDismiss()
+   }
+
+   Rectangle {
+      id: bottomStatusBar
+      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.bottom: parent.bottom
+      height: view.topMargin
+      width: view.cardWidth
+      color: "transparent"
+
+      Text {
+         id: cardDetailStatusText
+         anchors.fill: parent
+
+         visible: view.selectedCard && !!view.selectedCard.pass.updateError || false
+         text: view.selectedCard && view.selectedCard.pass.updateError || ""
+
+         horizontalAlignment: Text.AlignHCenter
+         verticalAlignment: Text.AlignVCenter
+
+         font.pointSize: units.gu(1)
+         wrapMode: Text.WordWrap
+      }
    }
 
    function showCard(index) {

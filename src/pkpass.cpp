@@ -27,6 +27,7 @@
 #include <QFontMetrics>
 #include <QCryptographicHash>
 #include <QFile>
+#include <QBuffer>
 
 #include "quazip/quazipfile.h"
 #include "barcode.h"
@@ -52,6 +53,14 @@ namespace passes
       return QByteArray();
    }
 
+   QByteArray dataMd5(const QByteArray& data)
+   {
+      QCryptographicHash hash(QCryptographicHash::Md5);
+
+      hash.addData(data);
+      return hash.result().toHex();
+   }
+
    // **************************************************************************
    // class PkpassParser
    // **************************************************************************
@@ -70,8 +79,6 @@ namespace passes
    {
       Pass* pass = new Pass();
       currentTranslation.clear();
-
-      qDebug() << "OPEN PASS: " << info.absoluteFilePath();
 
       QuaZip archive(info.absoluteFilePath());
 
@@ -250,17 +257,17 @@ namespace passes
 
       // parse webservice block
 
-      if (object.contains("authenticationToken") && object.contains("webServiceURL"))
+      pass->webservice.webserviceBroken = false;
+
+      if (object.contains("authenticationToken")
+          && object.contains("webServiceURL")
+          && object.contains("passTypeIdentifier")
+          && object.contains("serialNumber"))
       {
          pass->webservice.accessToken = object["authenticationToken"].toString();
-         pass->webservice.url = object["webServiceURL"].toString();
-         pass->webservice.passTypeIdentifier = object["passTypeIdentifier"].toString();
-         pass->webservice.serialNumber = object["serialNumber"].toString();
-
-         qDebug() << "WEBSERVICE: " << pass->webservice.accessToken
-                  << " " << pass->webservice.url
-                  << " " << pass->webservice.passTypeIdentifier
-                  << " " << pass->webservice.serialNumber;
+         pass->webservice.url = object["webServiceURL"].toString()
+               + "/v1/passes/" + object["passTypeIdentifier"].toString()
+               + "/" + object["serialNumber"].toString();
       }
 
       // parse all contained barcodes
@@ -569,5 +576,7 @@ namespace passes
 
       return QColor(comps[0].toInt(), comps[1].toInt(), comps[2].toInt()).name();
    }
+
+
 
 } // namespace passes
