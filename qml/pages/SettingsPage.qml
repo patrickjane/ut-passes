@@ -124,7 +124,8 @@ Page {
                        }
                     }
                     Text {
-                       text: i18n.tr(updateIntervalSlider.value === 1.0 ? "%1 minute" : "%1 minutes").arg(updateIntervalSlider.value.toFixed(0))
+                       text: (updateIntervalSlider.value === 1.0 ? i18n.tr("%1 minute") : i18n.tr("%1 minutes"))
+                       .arg(updateIntervalSlider.value.toFixed(0))
                        enabled: switchUpdateAtInterval.checked
                        color: switchUpdateAtInterval.checked && "black" || "gray"
                     }

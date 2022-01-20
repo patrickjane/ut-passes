@@ -5,6 +5,14 @@ set(DOMAIN ${FULL_PROJECT_NAME})
 set(POT_FILE ${DOMAIN}.pot)
 file(GLOB PO_FILES *.po)
 
+list(APPEND I18N_SRC_FILES
+    ${CMAKE_SOURCE_DIR}/src/barcode.cpp
+    ${CMAKE_SOURCE_DIR}/src/network.cpp
+    ${CMAKE_SOURCE_DIR}/src/passesmodel.cpp
+    ${CMAKE_SOURCE_DIR}/src/passimageprovider.cpp
+    ${CMAKE_SOURCE_DIR}/src/pkpass.cpp
+    )
+
 # Creates the .pot file containing the translations template
 add_custom_target(${POT_FILE} ALL
     COMMENT "Generating translation template"

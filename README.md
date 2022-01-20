@@ -1,7 +1,7 @@
-# ut-passes
+# Passes
 Access .pkpass passes on Ubuntu Touch
 
-# Features
+## Features
 
 This app allows to import passes in .pkpass format and display them in a list, similar to iOS' wallet. Each pass will be shown with it's entire information, including the respective code which can then be scanned.
 
@@ -25,7 +25,7 @@ If you encounter any issue with the app, **please report on github**. Do not rep
 
 </p>
 
-# Reference
+## Reference
 
 Implementation based on the specification described here:
 - https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html#//apple_ref/doc/uid/TP40012026-CH2-SW2
