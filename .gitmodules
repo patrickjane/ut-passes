@@ -1,0 +1,6 @@
+[submodule "libs/quazip"]
+	path = libs/quazip
+	url = https://github.com/stachenov/quazip.git
+[submodule "libs/zxing-cpp"]
+	path = libs/zxing-cpp
+	url = https://github.com/nu-book/zxing-cpp.git

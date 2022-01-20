@@ -31,6 +31,7 @@
     "zxing-cpp": {
       "builder": "cmake",
       "build_args": [],
+      "prebuild": "cd libs/zxing-cpp && git apply ../../zxing_patch.patch || exit 0",
       "image_setup": {
         "run": [
           "wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -",
