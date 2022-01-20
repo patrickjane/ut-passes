@@ -1,7 +1,7 @@
 # Passes
 Access .pkpass passes on Ubuntu Touch
 
-[![OpenStore](https://open-store.io/badges/en_US.svg)](https://open-store.io/app/passes.s710)
+[![OpenStore](https://open-store.io/badges/en_US.png)](https://open-store.io/app/passes.s710)
 
 ## Features
 
