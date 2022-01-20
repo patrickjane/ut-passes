@@ -1,6 +1,8 @@
 # Passes
 Access .pkpass passes on Ubuntu Touch
 
+[![OpenStore](https://open-store.io/badges/en_US.svg)](https://open-store.io/app/passes.s710)
+
 ## Features
 
 This app allows to import passes in .pkpass format and display them in a list, similar to iOS' wallet. Each pass will be shown with it's entire information, including the respective code which can then be scanned.
