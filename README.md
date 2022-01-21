@@ -44,8 +44,8 @@ Copyright (C) 2021-2022 Patrick Fial
 Licensed under the MIT license
 
 # Copyright notice
-- Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+- Pass icon in app icon made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
 
-- This app uses the [zxing](https://github.com/nu-book/zxing-cpp.git) libraries for generating barcodes codes.
+- This app uses the [zxing](https://github.com/nu-book/zxing-cpp.git) libraries for generating barcodes.
 
 - This app uses the [Quazip](https://github.com/stachenov/quazip.git) library for opening compressed archives.
