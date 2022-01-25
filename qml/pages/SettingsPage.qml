@@ -1,5 +1,6 @@
 import Ubuntu.Components 1.3
 import Ubuntu.Components.ListItems 1.3
+import Ubuntu.Components.Themes 1.3
 import QtQuick 2.7
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
@@ -13,7 +14,6 @@ Page {
        id: settings
        property bool updateAtStartup: true
        property bool updateAtInterval: true
-//       property double updateInterval
     }
 
     header: PageHeader {
@@ -43,6 +43,7 @@ Page {
                 id: l1
                 title.text: i18n.tr("Updates")
                 title.font.bold: true
+                title.color: Theme.palette.normal.baseText
              }
           }
 
@@ -56,6 +57,8 @@ Page {
                   mainSlot: Text {
                      anchors.verticalCenter: parent.verticalCenter
                      text: i18n.tr("Fetch pass updates upon app start")
+                     color: Theme.palette.normal.baseText
+                     wrapMode: Text.WordWrap
                   }
                   Switch {
                      checked: settings.updateAtStartup
@@ -78,6 +81,8 @@ Page {
                   mainSlot: Text {
                      anchors.verticalCenter: parent.verticalCenter
                      text: i18n.tr("Fetch pass updates at regular intervals")
+                     color: Theme.palette.normal.baseText
+                     wrapMode: Text.WordWrap
                   }
                   Switch {
                      id: switchUpdateAtInterval
@@ -127,7 +132,9 @@ Page {
                        text: (updateIntervalSlider.value === 1.0 ? i18n.tr("%1 minute") : i18n.tr("%1 minutes"))
                        .arg(updateIntervalSlider.value.toFixed(0))
                        enabled: switchUpdateAtInterval.checked
-                       color: switchUpdateAtInterval.checked && "black" || "gray"
+                       color: switchUpdateAtInterval.checked
+                              && Theme.palette.normal.baseText
+                              || Theme.palette.disabled.baseText
                     }
                  }
               }

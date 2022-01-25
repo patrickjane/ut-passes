@@ -3,6 +3,8 @@ import Ubuntu.Components 1.3
 import QtQuick.Layouts 1.11
 import QtQuick.Controls 2.11
 
+import QtQuick.Window 2.11
+
 Rectangle {
    id: passCard
    property var pass
@@ -10,6 +12,13 @@ Rectangle {
    property color foregroundColor: pass.standard.foregroundColor || "black"
    property color labelColor: pass.standard.labelColor || foregroundColor
    property color backgroundColor: pass.standard.backgroundColor || "white"
+
+   // iPhone 6: 750x1334 -> strip size shall be 375 x 98 (= 750 x 196)
+   // as per https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html
+
+   property double stripSizeFactor: (passCard.width - 2) / 750.0
+   property double stripWidth: 750.0 * stripSizeFactor
+   property double stripHeight: 196.0 * stripSizeFactor
 
    radius: units.gu(4)
    signal infoButtonPressed()
@@ -87,6 +96,25 @@ Rectangle {
       }
    }
 
+   // primary fields (on top of the strip)
+
+   PassPrimaryFields {
+      id: primaryFields
+      anchors.top: logoTextContainer.bottom
+      anchors.left: parent.left
+      anchors.leftMargin: units.gu(1)
+      anchors.right: parent.right
+      anchors.rightMargin: units.gu(1)
+
+      passId: passCard.pass.id
+      style: passCard.pass.details.style
+      primaryFields: passCard.pass.details.primaryFields
+      foregroundColor: passCard.pass.standard.stripExtraForegroundColor || passCard.foregroundColor
+      labelColor: passCard.pass.standard.stripExtraLabelColor || passCard.labelColor
+
+      z: stripContainer.z + 1
+   }
+
    // strip image
 
    Rectangle {
@@ -96,20 +124,25 @@ Rectangle {
       anchors.leftMargin: 1
       anchors.rightMargin: 1
       anchors.top: logoTextContainer.bottom
+      width: stripWidth
+      height: passCard.pass.haveStripImage ? stripHeight : primaryFields.height
 
-      height: childrenRect.height
+      color: "transparent"
+      clip: true
 
       Image {
-         id: stripImage
-         anchors.top: parent.top
-         anchors.left: parent.left
-         anchors.right: parent.right
-         fillMode: Image.PreserveAspectCrop
+         property double factor: stripWidth / sourceSize.width
+
+         anchors.centerIn: parent
+         width: stripWidth
+         height: sourceSize.height * factor
+
+         fillMode: Image.PreserveAspectFit
          source: "image://passes/" + passCard.pass.id + "/strip"
       }
    }
 
-   // primary fields & rest of fields
+   // rest of fields
 
    Flickable {
       id: passContents
@@ -141,16 +174,16 @@ Rectangle {
 
          // primary fields
 
-         PassPrimaryFields {
-            anchors.left: parent.left
-            anchors.right: parent.right
+//         PassPrimaryFields {
+//            anchors.left: parent.left
+//            anchors.right: parent.right
 
-            passId: passCard.pass.id
-            style: passCard.pass.details.style
-            primaryFields: passCard.pass.details.primaryFields
-            foregroundColor: passCard.foregroundColor
-            labelColor: passCard.labelColor
-         }
+//            passId: passCard.pass.id
+//            style: passCard.pass.details.style
+//            primaryFields: passCard.pass.details.primaryFields
+//            foregroundColor: passCard.foregroundColor
+//            labelColor: passCard.labelColor
+//         }
 
          Grid {
             id: grid

@@ -15,7 +15,7 @@ Item {
    Column {
       id: f
       anchors.left: parent.left
-      width: parent.width / 2
+      width: fields.primaryFields.length === 1 ? parent.width : parent.width / 2
       height: childrenRect.height
 
       Text {
@@ -24,6 +24,7 @@ Item {
          text: (fields.primaryFields.length && primaryFields[0].label || "").toUpperCase()
          wrapMode: Text.WordWrap
          font.pointSize: units.gu(1)
+         font.bold: true
          color: labelColor
       }
 
@@ -32,7 +33,7 @@ Item {
          visible: fields.primaryFields.length
          text: fields.primaryFields.length && primaryFields[0].value || ""
          wrapMode: Text.WordWrap
-         font.pointSize: units.gu(2)
+         font.pointSize: fields.primaryFields.length === 1 ? units.gu(1.5) : units.gu(2)
          color: foregroundColor
       }
    }
@@ -62,8 +63,9 @@ Item {
    }
 
    Column {
+      visible: fields.primaryFields.length === 2
       anchors.right: parent.right
-      width: childrenRect.width //parent.width / 2
+      width: childrenRect.width
       height: childrenRect.height
 
       Text {
@@ -71,6 +73,7 @@ Item {
          text: (fields.primaryFields.length >= 2 && primaryFields[1].label || "").toUpperCase()
          wrapMode: Text.WordWrap
          font.pointSize: units.gu(1)
+         font.bold: true
          color: labelColor
       }
 

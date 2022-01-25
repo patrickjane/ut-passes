@@ -43,9 +43,9 @@ Rectangle {
 
       Image {
          anchors.left: parent.left
-         anchors.leftMargin: units.gu(1.5)
+         anchors.leftMargin: units.gu(1.1)
          anchors.verticalCenter: parent.verticalCenter
-         height: units.gu(7)
+         height: units.gu(6)
          fillMode: Image.PreserveAspectFit
          source: "image://passes/" + passCard.pass.id + "/logo"
          visible: !logoText.text
@@ -101,6 +101,7 @@ Rectangle {
                   anchors.left: parent.left
                   text: modelData.label.toUpperCase()
                   font.pointSize: units.gu(1)
+                  font.bold: true
                   color: labelColor
                }
 

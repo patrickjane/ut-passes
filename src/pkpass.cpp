@@ -36,6 +36,31 @@ namespace C {
 #include <libintl.h>
 }
 
+namespace colors
+{
+#include <cmath>
+
+   // luminosity calculation as per
+   // https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
+
+   double sRGBtoLin(double colorChannel)
+   {
+      if (colorChannel <= 0.04045)
+         return colorChannel / 12.92;
+
+      return std::pow(((colorChannel + 0.055)/1.055), 2.4);
+   }
+
+   double getLuminance(const QColor& color)
+   {
+      double vR = static_cast<double>(color.red()) / 255.0;
+      double vG = static_cast<double>(color.green()) / 255.0;
+      double vB = static_cast<double>(color.blue()) / 255.0;
+
+      return (0.2126 * sRGBtoLin(vR) + 0.7152 * sRGBtoLin(vG) + 0.0722 * sRGBtoLin(vB));
+   }
+}
+
 namespace passes
 {
    QByteArray fileMd5(const QString &fileName)
@@ -93,6 +118,8 @@ namespace passes
          return { pass, C::gettext("Archive does not contain a valid pass") };
 
       QString err = readLocalization(pass, archive, archiveContents);
+
+      pass->haveStripImage = false;
 
       if (err.isEmpty()) err = readPass(pass, archive);
       if (err.isEmpty()) err = readImages(pass, archive, archiveContents);
@@ -444,6 +471,8 @@ namespace passes
       return "";
    }
 
+
+
    // **************************************************************************
    // readImages
    // **************************************************************************
@@ -458,6 +487,32 @@ namespace passes
       if (err.isEmpty()) err = readImage(&pass->imgLogo,       archive, archiveContents, "logo");
       if (err.isEmpty()) err = readImage(&pass->imgStrip,      archive, archiveContents, "strip");
       if (err.isEmpty()) err = readImage(&pass->imgThumbnail,  archive, archiveContents, "thumbnail");
+
+      if (!pass->imgStrip.isNull())
+      {
+         pass->haveStripImage = true;
+
+         // check if we need different color for the strip foreground text in case the
+         // strip color does not match well with the passes foreground text color
+
+         QColor colorOfStrip = QColor::fromRgb(pass->imgStrip.pixel(10, 10));
+         QColor passForegroundColor(pass->standard.foregroundColor);
+         QColor passLabelColor(pass->standard.labelColor);
+
+         double lumStrip = colors::getLuminance(colorOfStrip);
+         double lumForground = colors::getLuminance(passForegroundColor);
+         double lumLabel = colors::getLuminance(passLabelColor);
+
+         if (lumStrip < 0.25 && lumForground < 0.25)
+            pass->standard.stripExtraForegroundColor = "#EDEDED";
+         else if (lumStrip > 0.25 && lumForground > 0.25)
+            pass->standard.stripExtraForegroundColor = "#3A3A3A";
+
+         if (lumStrip < 0.25 && lumLabel < 0.25)
+            pass->standard.stripExtraLabelColor = "#EDEDED";
+         else if (lumStrip > 0.25 && lumLabel > 0.25)
+            pass->standard.stripExtraLabelColor = "#3A3A3A";
+      }
 
       return err;
    }

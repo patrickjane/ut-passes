@@ -99,6 +99,8 @@ namespace passes
          QString labelColor;
          QString logoText;
          QString barcodeFormat;
+         QString stripExtraForegroundColor;
+         QString stripExtraLabelColor;
 
          explicit operator QVariant() const
          {
@@ -115,6 +117,8 @@ namespace passes
             m.insert("logoText", logoText);
             m.insert("organization", organization);
             m.insert("barcodeFormat", barcodeFormat);
+            m.insert("stripExtraForegroundColor", stripExtraForegroundColor);
+            m.insert("stripExtraLabelColor", stripExtraLabelColor);
 
             QVariantList codes;
 
@@ -217,7 +221,8 @@ namespace passes
          QImage imgIcon;
          QImage imgLogo;
          QImage imgStrip;
-         QImage imgThumbnail;
+         QImage imgThumbnail;         
+         bool haveStripImage;
 
          explicit operator QVariant() const
          {
@@ -229,6 +234,7 @@ namespace passes
             m.insert("details", static_cast<QVariant>(details));
             m.insert("webservice", static_cast<QVariant>(webservice));
             m.insert("updateError", updateError);
+            m.insert("haveStripImage", haveStripImage);
 
             return m;
          }
