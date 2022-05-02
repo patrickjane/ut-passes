@@ -236,6 +236,8 @@ namespace passes
       if (!object.contains("description") || !object.contains("organizationName"))
          return C::gettext("Pass information is invalid (missing description/organization key(s))");
 
+      pass->standard.expired = false;
+
       pass->standard.description = object["description"].toString();
       pass->standard.organization = object["organizationName"].toString();
 
@@ -248,8 +250,6 @@ namespace passes
          QDateTime dt = QDateTime::fromString(pass->standard.expirationDate, Qt::ISODate);
 
          if (QDateTime::currentDateTime().secsTo(dt) <= 0)
-            pass->standard.expired = true;
-         else
             pass->standard.expired = true;
       }
 
