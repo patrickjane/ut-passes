@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: passes.s710\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-02 06:15+0000\n"
+"POT-Creation-Date: 2022-12-18 10:49+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -229,30 +229,26 @@ msgid ""
 "Failed to save pass update to storage / could replace existing pass (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:118
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:122
 msgid "Archive does not contain a valid pass"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:172
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:178
 msgid "Pass information is invalid (empty)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:225
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:232
 msgid "Pass information is invalid"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:237
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:244
 msgid "Pass information is invalid (missing description/organization key(s))"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:328
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:334
 msgid "Pass contains invalid/incomplete barcode information"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:418
-msgid "Pass contains invalid/incomplete fields"
-msgstr ""
-
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:547
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:561
 msgid "Pass contains invalid/incomplete image data"
 msgstr ""
