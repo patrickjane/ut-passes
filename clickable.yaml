@@ -1,0 +1,13 @@
+clickable_minimum_required: 7
+builder: cmake
+kill: Passes
+framework: ubuntu-sdk-20.04
+install_lib:
+  - "${QUAZIP_LIB_INSTALL_DIR}/lib/*.so*"
+  - "${ZXING_CPP_LIB_INSTALL_DIR}/lib/*.so*"
+libraries:
+  quazip:
+    builder: cmake
+  zxing-cpp:
+    builder: cmake
+    prebuild: "cd libs/zxing-cpp && git apply ../../zxing_patch.patch || exit 0"

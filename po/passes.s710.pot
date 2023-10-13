@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: passes.s710\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-18 10:49+0000\n"
+"POT-Creation-Date: 2023-02-10 09:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,20 +36,20 @@ msgid ""
 "storage? This operation cannot be undone."
 msgstr ""
 
-#: ../qml/Main.qml:60 ../qml/pages/MainPage.qml:88
+#: ../qml/Main.qml:60 ../qml/pages/MainPage.qml:90
 msgid "Delete"
 msgstr ""
 
 #: ../qml/Main.qml:61 ../qml/Main.qml:110 ../qml/pages/MainPage.qml:47
-#: ../qml/pages/MainPage.qml:89 ../qml/util/Dialogs.qml:14
+#: ../qml/pages/MainPage.qml:91 ../qml/util/Dialogs.qml:14
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/Main.qml:72 ../qml/pages/MainPage.qml:102
+#: ../qml/Main.qml:72 ../qml/pages/MainPage.qml:104
 msgid "Failed to delete pass"
 msgstr ""
 
-#: ../qml/Main.qml:73 ../qml/pages/MainPage.qml:103
+#: ../qml/Main.qml:73 ../qml/pages/MainPage.qml:105
 msgid "Pass '%1' could not be deleted (%2)."
 msgstr ""
 
@@ -85,32 +85,32 @@ msgstr ""
 msgid "Fetch updates"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:86
+#: ../qml/pages/MainPage.qml:88
 msgid "Delete pass"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:87
+#: ../qml/pages/MainPage.qml:89
 msgid ""
 "Do you want to delete the pass from Passes? This operation cannot be undone."
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:165
+#: ../qml/pages/MainPage.qml:167
 msgid "All passes have expired"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:166
+#: ../qml/pages/MainPage.qml:168
 msgid "No passes have been added yet"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:171
+#: ../qml/pages/MainPage.qml:173
 msgid "Add new pass"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:189
+#: ../qml/pages/MainPage.qml:191
 msgid "Failed to import pass"
 msgstr ""
 
-#: ../qml/pages/MainPage.qml:190
+#: ../qml/pages/MainPage.qml:192
 msgid "Pass '%1' could not be imported (%2)."
 msgstr ""
 
@@ -229,26 +229,26 @@ msgid ""
 "Failed to save pass update to storage / could replace existing pass (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:122
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:118
 msgid "Archive does not contain a valid pass"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:178
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:173
 msgid "Pass information is invalid (empty)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:232
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:227
 msgid "Pass information is invalid"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:244
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:240
 msgid "Pass information is invalid (missing description/organization key(s))"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:334
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:323
 msgid "Pass contains invalid/incomplete barcode information"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:561
+#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:534
 msgid "Pass contains invalid/incomplete image data"
 msgstr ""

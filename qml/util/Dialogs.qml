@@ -1,8 +1,8 @@
 pragma Singleton
 
 import QtQuick 2.4
-import Ubuntu.Components.Popups 1.3
-import Ubuntu.Components 1.3
+import Lomiri.Components.Popups 1.3
+import Lomiri.Components 1.3
 
 Item {
    Component {
@@ -12,7 +12,7 @@ Item {
          id: questionDialog
          property string acceptButtonTitle: i18n.tr("Okay")
          property string cancelButtonTitle: i18n.tr("Cancel")
-         property color acceptButtonColor: UbuntuColors.green
+         property color acceptButtonColor: LomiriColors.green
 
          signal accepted();
          signal rejected();

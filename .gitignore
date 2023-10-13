@@ -4,3 +4,4 @@ build
 *.pro.user
 *.autosave
 testpasses
+CMakeLists.txt.user

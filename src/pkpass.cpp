@@ -34,59 +34,55 @@
 #include "barcode.h"
 #include "quazip/quazipfile.h"
 
-namespace C
-{
+namespace C {
 #include <libintl.h>
 }
 
-namespace colors
-{
 #include <cmath>
+namespace colors {
 
 // luminosity calculation as per
 // https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
 
 double sRGBtoLin(double colorChannel)
 {
-   if (colorChannel <= 0.04045)
-      return colorChannel / 12.92;
+    if (colorChannel <= 0.04045)
+        return colorChannel / 12.92;
 
-   return std::pow(((colorChannel + 0.055) / 1.055), 2.4);
+    return pow(((colorChannel + 0.055) / 1.055), 2.4);
 }
 
 double getLuminance(const QColor& color)
 {
-   double vR = static_cast<double>(color.red()) / 255.0;
-   double vG = static_cast<double>(color.green()) / 255.0;
-   double vB = static_cast<double>(color.blue()) / 255.0;
+    double vR = static_cast<double>(color.red()) / 255.0;
+    double vG = static_cast<double>(color.green()) / 255.0;
+    double vB = static_cast<double>(color.blue()) / 255.0;
 
-   return (0.2126 * sRGBtoLin(vR) + 0.7152 * sRGBtoLin(vG) + 0.0722 * sRGBtoLin(vB));
+    return (0.2126 * sRGBtoLin(vR) + 0.7152 * sRGBtoLin(vG) + 0.0722 * sRGBtoLin(vB));
 }
 } // namespace colors
 
-namespace passes
-{
+namespace passes {
 QByteArray fileMd5(const QString& fileName)
 {
-   QFile f(fileName);
+    QFile f(fileName);
 
-   if (f.open(QFile::ReadOnly))
-   {
-      QCryptographicHash hash(QCryptographicHash::Md5);
+    if (f.open(QFile::ReadOnly)) {
+        QCryptographicHash hash(QCryptographicHash::Md5);
 
-      if (hash.addData(&f))
-         return hash.result().toHex();
-   }
+        if (hash.addData(&f))
+            return hash.result().toHex();
+    }
 
-   return QByteArray();
+    return QByteArray();
 }
 
 QByteArray dataMd5(const QByteArray& data)
 {
-   QCryptographicHash hash(QCryptographicHash::Md5);
+    QCryptographicHash hash(QCryptographicHash::Md5);
 
-   hash.addData(data);
-   return hash.result().toHex();
+    hash.addData(data);
+    return hash.result().toHex();
 }
 
 // **************************************************************************
@@ -106,51 +102,50 @@ Pkpass::Pkpass()
 
 PassResult Pkpass::openPass(const QFileInfo& info)
 {
-   Pass* pass = new Pass();
-   currentTranslation.clear();
+    Pass* pass = new Pass();
+    currentTranslation.clear();
 
-   QuaZip archive(info.absoluteFilePath());
+    QuaZip archive(info.absoluteFilePath());
 
-   bool res = archive.open(QuaZip::mdUnzip);
+    bool res = archive.open(QuaZip::mdUnzip);
 
-   if (!res)
-      return {pass, QString(archive.getZipError())};
+    if (!res)
+        return {pass, QString(archive.getZipError())};
 
-   auto archiveContents = archive.getFileNameList();
+    auto archiveContents = archive.getFileNameList();
 
-   if (!archiveContents.contains(filePassJson))
-      return {pass, C::gettext("Archive does not contain a valid pass")};
+    if (!archiveContents.contains(filePassJson))
+        return {pass, C::gettext("Archive does not contain a valid pass")};
 
-   QString err = readLocalization(pass, archive, archiveContents);
+    QString err = readLocalization(pass, archive, archiveContents);
 
-   pass->haveStripImage = false;
+    pass->haveStripImage = false;
 
-   if (err.isEmpty())
-      err = readPass(pass, archive);
-   if (err.isEmpty())
-      err = readImages(pass, archive, archiveContents);
+    if (err.isEmpty())
+        err = readPass(pass, archive);
+    if (err.isEmpty())
+        err = readImages(pass, archive, archiveContents);
 
-   QFontMetrics fm(defaultFont);
+    QFontMetrics fm(defaultFont);
 
-   qreal maxWidth = 0.0;
+    qreal maxWidth = 0.0;
 
-   for (auto f : pass->details.secondaryFields)
-   {
-      auto width = fm.tightBoundingRect(f.label).width();
+    for (auto f : pass->details.secondaryFields) {
+        auto width = fm.tightBoundingRect(f.label).width();
 
-      maxWidth = maxWidth > width ? maxWidth : width;
-   }
+        maxWidth = maxWidth > width ? maxWidth : width;
+    }
 
-   pass->details.maxFieldLabelWidth = maxWidth;
-   pass->id = fileMd5(info.absoluteFilePath());
-   pass->modified = info.lastModified();
-   pass->filePath = info.absoluteFilePath();
+    pass->details.maxFieldLabelWidth = maxWidth;
+    pass->id = fileMd5(info.absoluteFilePath());
+    pass->modified = info.lastModified();
+    pass->filePath = info.absoluteFilePath();
 
-   if (!pass->sortingDate.isValid())
-      pass->sortingDate = pass->modified;
+    if (!pass->sortingDate.isValid())
+        pass->sortingDate = pass->modified;
 
-   archive.close();
-   return {pass, err};
+    archive.close();
+    return {pass, err};
 }
 
 // **************************************************************************
@@ -159,32 +154,32 @@ PassResult Pkpass::openPass(const QFileInfo& info)
 
 QString Pkpass::readPass(Pass* pass, QuaZip& archive)
 {
-   archive.setCurrentFile(filePassJson);
+    archive.setCurrentFile(filePassJson);
 
-   QString err;
-   QuaZipFile file(&archive);
+    QString err;
+    QuaZipFile file(&archive);
 
-   file.open(QIODevice::ReadOnly);
+    file.open(QIODevice::ReadOnly);
 
-   auto contents = file.readAll();
-   auto doc = readPassDocument(contents, err);
+    auto contents = file.readAll();
+    auto doc = readPassDocument(contents, err);
 
-   file.close();
+    file.close();
 
-   if (!err.isEmpty())
-      return err;
+    if (!err.isEmpty())
+        return err;
 
-   if (doc.isNull() || !doc.isObject() || doc.object().isEmpty())
-      return C::gettext("Pass information is invalid (empty)");
+    if (doc.isNull() || !doc.isObject() || doc.object().isEmpty())
+        return C::gettext("Pass information is invalid (empty)");
 
-   auto root = doc.object();
+    auto root = doc.object();
 
-   err = readPassStandard(pass, root);
+    err = readPassStandard(pass, root);
 
-   if (err.isEmpty())
-      err = readPassStyle(pass, root);
+    if (err.isEmpty())
+        err = readPassStyle(pass, root);
 
-   return err;
+    return err;
 }
 
 // **************************************************************************
@@ -193,45 +188,46 @@ QString Pkpass::readPass(Pass* pass, QuaZip& archive)
 
 QJsonDocument Pkpass::readPassDocument(const QByteArray& data, QString& err)
 {
-   // fix trailing commas, remove special characters
+    // fix trailing commas, remove special characters
 
-   QString stringData = QString::fromUtf8(data)
-                          .replace('\t', "")
-                          .replace('\n', "")
-                          .replace('\r', "")
-                          .replace(trailingCommaRegEx1, "]")
-                          .replace(trailingCommaRegEx2, "}");
+    QString stringData = QString::fromUtf8(data)
+                           .replace('\t', "")
+                           .replace('\n', "")
+                           .replace('\r', "")
+                           .replace(trailingCommaRegEx1, "]")
+                           .replace(trailingCommaRegEx2, "}");
 
-   // remove garbage at end of JSON
+    // remove garbage at end of JSON
 
-   stringData.remove(stringData.lastIndexOf('}') + 1, stringData.length() + 1);
+    stringData.remove(stringData.lastIndexOf('}') + 1, stringData.length() + 1);
 
-   QJsonParseError jsonErr;
-   auto doc = QJsonDocument::fromJson(stringData.toUtf8(), &jsonErr);
+    QJsonParseError jsonErr;
+    auto doc = QJsonDocument::fromJson(stringData.toUtf8(), &jsonErr);
 
-   if (jsonErr.error == QJsonParseError::NoError)
-      return doc;
+    if (jsonErr.error == QJsonParseError::NoError)
+        return doc;
 
-   // try UTF-32 (e.g. subway card uses this)
-   // fix trailing commas, remove special characters
+    // try UTF-32 (e.g. subway card uses this)
+    // fix trailing commas, remove special characters
 
-   auto utf32String = QString::fromUcs4((const uint*)data.data())
-                        .replace('\t', "")
-                        .replace('\n', "")
-                        .replace('\r', "")
-                        .replace(trailingCommaRegEx1, "]")
-                        .replace(trailingCommaRegEx2, "}");
+    auto utf32String = QString::fromUcs4((const uint*) data.data())
+                         .replace('\t', "")
+                         .replace('\n', "")
+                         .replace('\r', "")
+                         .replace(trailingCommaRegEx1, "]")
+                         .replace(trailingCommaRegEx2, "}");
 
-   // remove garbage at end of JSON
+    // remove garbage at end of JSON
 
-   utf32String.remove(utf32String.lastIndexOf('}') + 1, utf32String.length() + 1);
+    utf32String.remove(utf32String.lastIndexOf('}') + 1, utf32String.length() + 1);
 
-   doc = QJsonDocument::fromJson(utf32String.toUtf8(), &jsonErr);
+    doc = QJsonDocument::fromJson(utf32String.toUtf8(), &jsonErr);
 
-   if (jsonErr.error != QJsonParseError::NoError)
-      err = QString(C::gettext("Pass information is invalid")) + " (" + jsonErr.errorString() + ")";
+    if (jsonErr.error != QJsonParseError::NoError)
+        err = QString(C::gettext("Pass information is invalid")) + " (" + jsonErr.errorString()
+              + ")";
 
-   return doc;
+    return doc;
 }
 
 // **************************************************************************
@@ -240,88 +236,81 @@ QJsonDocument Pkpass::readPassDocument(const QByteArray& data, QString& err)
 
 QString Pkpass::readPassStandard(Pass* pass, QJsonObject& object)
 {
-   if (!object.contains("description") || !object.contains("organizationName"))
-      return C::gettext("Pass information is invalid (missing description/organization key(s))");
+    if (!object.contains("description") || !object.contains("organizationName"))
+        return C::gettext("Pass information is invalid (missing description/organization key(s))");
 
-   pass->standard.expired = false;
+    pass->standard.expired = false;
 
-   pass->standard.description = object["description"].toString();
-   pass->standard.organization = object["organizationName"].toString();
+    pass->standard.description = object["description"].toString();
+    pass->standard.organization = object["organizationName"].toString();
 
-   translate(pass->standard.description);
-   translate(pass->standard.organization);
+    translate(pass->standard.description);
+    translate(pass->standard.organization);
 
-   if (object.contains("expirationDate"))
-   {
-      pass->standard.expirationDate = object["expirationDate"].toString();
-      QDateTime dt = QDateTime::fromString(pass->standard.expirationDate, Qt::ISODate);
+    if (object.contains("expirationDate")) {
+        pass->standard.expirationDate = object["expirationDate"].toString();
+        QDateTime dt = QDateTime::fromString(pass->standard.expirationDate, Qt::ISODate);
 
-      if (QDateTime::currentDateTime().secsTo(dt) <= 0)
-         pass->standard.expired = true;
-   }
+        if (QDateTime::currentDateTime().secsTo(dt) <= 0)
+            pass->standard.expired = true;
+    }
 
-   if (object.contains("relevantDate"))
-   {
-      pass->standard.relevantDate = object["relevantDate"].toString();
-      pass->sortingDate = QDateTime::fromString(pass->standard.relevantDate, Qt::ISODate);
+    if (object.contains("relevantDate")) {
+        pass->standard.relevantDate = object["relevantDate"].toString();
+        pass->sortingDate = QDateTime::fromString(pass->standard.relevantDate, Qt::ISODate);
 
-      if (!object.contains("expirationDate")
-          && QDateTime::currentDateTime().secsTo(pass->sortingDate) <= 0)
-      {
-         pass->standard.expired = true;
-      }
-   }
+        if (!object.contains("expirationDate")
+            && QDateTime::currentDateTime().secsTo(pass->sortingDate) <= 0) {
+            pass->standard.expired = true;
+        }
+    }
 
-   if (object.contains("voided"))
-      pass->standard.voided = object["voided"].toBool();
+    if (object.contains("voided"))
+        pass->standard.voided = object["voided"].toBool();
 
-   if (object.contains("backgroundColor"))
-      pass->standard.backgroundColor = parseColor(object["backgroundColor"].toString());
+    if (object.contains("backgroundColor"))
+        pass->standard.backgroundColor = parseColor(object["backgroundColor"].toString());
 
-   if (object.contains("foregroundColor"))
-      pass->standard.foregroundColor = parseColor(object["foregroundColor"].toString());
+    if (object.contains("foregroundColor"))
+        pass->standard.foregroundColor = parseColor(object["foregroundColor"].toString());
 
-   if (object.contains("labelColor"))
-      pass->standard.labelColor = parseColor(object["labelColor"].toString());
+    if (object.contains("labelColor"))
+        pass->standard.labelColor = parseColor(object["labelColor"].toString());
 
-   if (object.contains("logoText"))
-   {
-      pass->standard.logoText = object["logoText"].toString();
-      translate(pass->standard.logoText);
-   }
+    if (object.contains("logoText")) {
+        pass->standard.logoText = object["logoText"].toString();
+        translate(pass->standard.logoText);
+    }
 
-   // parse webservice block
+    // parse webservice block
 
-   pass->webservice.webserviceBroken = false;
+    pass->webservice.webserviceBroken = false;
 
-   if (object.contains("authenticationToken") && object.contains("webServiceURL")
-       && object.contains("passTypeIdentifier") && object.contains("serialNumber"))
-   {
-      pass->webservice.accessToken = object["authenticationToken"].toString();
-      pass->webservice.url = object["webServiceURL"].toString() + "/v1/passes/"
-                             + object["passTypeIdentifier"].toString() + "/"
-                             + object["serialNumber"].toString();
-   }
+    if (object.contains("authenticationToken") && object.contains("webServiceURL")
+        && object.contains("passTypeIdentifier") && object.contains("serialNumber")) {
+        pass->webservice.accessToken = object["authenticationToken"].toString();
+        pass->webservice.url = object["webServiceURL"].toString() + "/v1/passes/"
+                               + object["passTypeIdentifier"].toString() + "/"
+                               + object["serialNumber"].toString();
+    }
 
-   // parse all contained barcodes
+    // parse all contained barcodes
 
-   if (object.contains("barcode"))
-      return readPassBarcode(pass, object["barcode"].toObject());
+    if (object.contains("barcode"))
+        return readPassBarcode(pass, object["barcode"].toObject());
 
-   if (object.contains("barcodes"))
-   {
-      auto barcodes = object["barcodes"].toArray();
+    if (object.contains("barcodes")) {
+        auto barcodes = object["barcodes"].toArray();
 
-      for (int i = 0; i < barcodes.size(); i++)
-      {
-         auto errString = readPassBarcode(pass, barcodes[i].toObject());
+        for (int i = 0; i < barcodes.size(); i++) {
+            auto errString = readPassBarcode(pass, barcodes[i].toObject());
 
-         if (!errString.isEmpty())
-            return errString;
-      }
-   }
+            if (!errString.isEmpty())
+                return errString;
+        }
+    }
 
-   return "";
+    return "";
 }
 
 // **************************************************************************
@@ -330,32 +319,32 @@ QString Pkpass::readPassStandard(Pass* pass, QJsonObject& object)
 
 QString Pkpass::readPassBarcode(Pass* pass, QJsonObject object)
 {
-   if (object.isEmpty() || !object.contains("format") || !object.contains("message"))
-      return C::gettext("Pass contains invalid/incomplete barcode information");
+    if (object.isEmpty() || !object.contains("format") || !object.contains("message"))
+        return C::gettext("Pass contains invalid/incomplete barcode information");
 
-   Barcode bc;
+    Barcode bc;
 
-   QString format = object["format"].toString();
-   QString message = object["message"].toString();
-   QString encoding = object.contains("encoding") ? object["encoding"].toString() : QString();
-   QString altText = object.contains("altText") ? object["altText"].toString() : QString();
+    QString format = object["format"].toString();
+    QString message = object["message"].toString();
+    QString encoding = object.contains("encoding") ? object["encoding"].toString() : QString();
+    QString altText = object.contains("altText") ? object["altText"].toString() : QString();
 
-   bc.format = format;
-   bc.message = message;
-   bc.encoding = encoding;
-   bc.altText = altText;
+    bc.format = format;
+    bc.message = message;
+    bc.encoding = encoding;
+    bc.altText = altText;
 
-   auto errString = BarcodeGenerator::generate(message, format, &bc.image);
+    auto errString = BarcodeGenerator::generate(message, format, &bc.image);
 
-   if (!errString.isEmpty())
-      return errString;
+    if (!errString.isEmpty())
+        return errString;
 
-   pass->standard.barcodes.push_back(std::move(bc));
+    pass->standard.barcodes.push_back(std::move(bc));
 
-   if (pass->standard.barcodeFormat.isEmpty())
-      pass->standard.barcodeFormat = format;
+    if (pass->standard.barcodeFormat.isEmpty())
+        pass->standard.barcodeFormat = format;
 
-   return errString;
+    return errString;
 }
 
 // **************************************************************************
@@ -364,57 +353,49 @@ QString Pkpass::readPassBarcode(Pass* pass, QJsonObject object)
 
 QString Pkpass::readPassStyle(Pass* pass, QJsonObject object)
 {
-   QString err;
-   QJsonObject styleObject;
+    QString err;
+    QJsonObject styleObject;
 
-   if (object.contains("boardingPass"))
-   {
-      styleObject = object["boardingPass"].toObject();
-      pass->details.style = "boardingPass";
-   }
-   else if (object.contains("coupon"))
-   {
-      styleObject = object["coupon"].toObject();
-      pass->details.style = "coupon";
-   }
-   else if (object.contains("eventTicket"))
-   {
-      styleObject = object["eventTicket"].toObject();
-      pass->details.style = "eventTicket";
-   }
-   else if (object.contains("generic"))
-   {
-      styleObject = object["generic"].toObject();
-      pass->details.style = "generic";
-   }
-   else if (object.contains("storeCard"))
-   {
-      styleObject = object["storeCard"].toObject();
-      pass->details.style = "storeCard";
-   }
+    if (object.contains("boardingPass")) {
+        styleObject = object["boardingPass"].toObject();
+        pass->details.style = "boardingPass";
+    } else if (object.contains("coupon")) {
+        styleObject = object["coupon"].toObject();
+        pass->details.style = "coupon";
+    } else if (object.contains("eventTicket")) {
+        styleObject = object["eventTicket"].toObject();
+        pass->details.style = "eventTicket";
+    } else if (object.contains("generic")) {
+        styleObject = object["generic"].toObject();
+        pass->details.style = "generic";
+    } else if (object.contains("storeCard")) {
+        styleObject = object["storeCard"].toObject();
+        pass->details.style = "storeCard";
+    }
 
-   if (styleObject.isEmpty())
-      return err;
+    if (styleObject.isEmpty())
+        return err;
 
-   if (styleObject.contains("headerFields"))
-      err = readPassStyleFields(pass->details.headerFields, styleObject["headerFields"].toArray());
+    if (styleObject.contains("headerFields"))
+        err = readPassStyleFields(pass->details.headerFields,
+                                  styleObject["headerFields"].toArray());
 
-   if (err.isEmpty() && styleObject.contains("primaryFields"))
-      err = readPassStyleFields(pass->details.primaryFields,
-                                styleObject["primaryFields"].toArray());
+    if (err.isEmpty() && styleObject.contains("primaryFields"))
+        err = readPassStyleFields(pass->details.primaryFields,
+                                  styleObject["primaryFields"].toArray());
 
-   if (err.isEmpty() && styleObject.contains("secondaryFields"))
-      err = readPassStyleFields(pass->details.secondaryFields,
-                                styleObject["secondaryFields"].toArray());
+    if (err.isEmpty() && styleObject.contains("secondaryFields"))
+        err = readPassStyleFields(pass->details.secondaryFields,
+                                  styleObject["secondaryFields"].toArray());
 
-   if (err.isEmpty() && styleObject.contains("auxiliaryFields"))
-      err = readPassStyleFields(pass->details.auxiliaryFields,
-                                styleObject["auxiliaryFields"].toArray());
+    if (err.isEmpty() && styleObject.contains("auxiliaryFields"))
+        err = readPassStyleFields(pass->details.auxiliaryFields,
+                                  styleObject["auxiliaryFields"].toArray());
 
-   if (err.isEmpty() && styleObject.contains("backFields"))
-      err = readPassStyleFields(pass->details.backFields, styleObject["backFields"].toArray());
+    if (err.isEmpty() && styleObject.contains("backFields"))
+        err = readPassStyleFields(pass->details.backFields, styleObject["backFields"].toArray());
 
-   return err;
+    return err;
 }
 
 // **************************************************************************
@@ -423,61 +404,55 @@ QString Pkpass::readPassStyle(Pass* pass, QJsonObject object)
 
 QString Pkpass::readPassStyleFields(QList<PassStyleField>& fields, QJsonArray jsonFields)
 {
-   if (jsonFields.isEmpty())
-      return "";
+    if (jsonFields.isEmpty())
+        return "";
 
-   for (auto v : jsonFields)
-   {
-      auto object = v.toObject();
+    for (auto v : jsonFields) {
+        auto object = v.toObject();
 
-      if (object.isEmpty())
-         continue;
+        if (object.isEmpty())
+            continue;
 
-      QString key = object.contains("key") ? object["key"].toString() : QString();
-      QString value = object.contains("value") ? object["value"].toString() : QString();
-      QString label = object.contains("label") ? object["label"].toString() : QString();
+        QString key = object.contains("key") ? object["key"].toString() : QString();
+        QString value = object.contains("value") ? object["value"].toString() : QString();
+        QString label = object.contains("label") ? object["label"].toString() : QString();
 
-      if (object.contains("dateStyle") || object.contains("timeStyle"))
-      {
-         QDateTime dt = QDateTime::fromString(value, Qt::ISODate).toLocalTime();
+        if (object.contains("dateStyle") || object.contains("timeStyle")) {
+            QDateTime dt = QDateTime::fromString(value, Qt::ISODate).toLocalTime();
 
-         if (dt.isValid())
-         {
-            QString format;
+            if (dt.isValid()) {
+                QString format;
 
-            if (object.contains("dateStyle") && object.contains("timeStyle")
-                && object["dateStyle"] != "PKDateStyleNone"
-                && object["timeStyle"] != "PKDateStyleNone")
-            {
-               if (object["dateStyle"] == "PKDateStyleShort")
-                  format = QLocale::system().dateTimeFormat(QLocale::ShortFormat);
-               else
-                  format = "dddd, " + QLocale::system().dateTimeFormat(QLocale::ShortFormat);
+                if (object.contains("dateStyle") && object.contains("timeStyle")
+                    && object["dateStyle"] != "PKDateStyleNone"
+                    && object["timeStyle"] != "PKDateStyleNone") {
+                    if (object["dateStyle"] == "PKDateStyleShort")
+                        format = QLocale::system().dateTimeFormat(QLocale::ShortFormat);
+                    else
+                        format = "dddd, " + QLocale::system().dateTimeFormat(QLocale::ShortFormat);
+                } else if (object.contains("timeStyle")
+                           && object["timeStyle"] != "PKDateStyleNone") {
+                    if (object["timeStyle"] == "PKDateStyleShort")
+                        format = QLocale::system().timeFormat(QLocale::ShortFormat);
+                    else
+                        format = QLocale::system().timeFormat(QLocale::ShortFormat);
+                } else if (object.contains("dateStyle")
+                           && object["dateStyle"] != "PKDateStyleNone") {
+                    if (object["dateStyle"] == "PKDateStyleShort")
+                        format = QLocale::system().dateFormat(QLocale::ShortFormat);
+                    else
+                        format = QLocale::system().dateFormat(QLocale::LongFormat);
+                }
+
+                if (!format.isEmpty())
+                    value = dt.toString(format);
             }
-            else if (object.contains("timeStyle") && object["timeStyle"] != "PKDateStyleNone")
-            {
-               if (object["timeStyle"] == "PKDateStyleShort")
-                  format = QLocale::system().timeFormat(QLocale::ShortFormat);
-               else
-                  format = QLocale::system().timeFormat(QLocale::ShortFormat);
-            }
-            else if (object.contains("dateStyle") && object["dateStyle"] != "PKDateStyleNone")
-            {
-               if (object["dateStyle"] == "PKDateStyleShort")
-                  format = QLocale::system().dateFormat(QLocale::ShortFormat);
-               else
-                  format = QLocale::system().dateFormat(QLocale::LongFormat);
-            }
+        }
 
-            if (!format.isEmpty())
-               value = dt.toString(format);
-         }
-      }
+        fields << PassStyleField {translate(key), translate(value), translate(label)};
+    }
 
-      fields << PassStyleField{translate(key), translate(value), translate(label)};
-   }
-
-   return "";
+    return "";
 }
 
 // **************************************************************************
@@ -486,48 +461,47 @@ QString Pkpass::readPassStyleFields(QList<PassStyleField>& fields, QJsonArray js
 
 QString Pkpass::readImages(Pass* pass, QuaZip& archive, const QStringList& archiveContents)
 {
-   QString err;
+    QString err;
 
-   if (err.isEmpty())
-      err = readImage(&pass->imgBackground, archive, archiveContents, "background");
-   if (err.isEmpty())
-      err = readImage(&pass->imgFooter, archive, archiveContents, "footer");
-   if (err.isEmpty())
-      err = readImage(&pass->imgIcon, archive, archiveContents, "icon");
-   if (err.isEmpty())
-      err = readImage(&pass->imgLogo, archive, archiveContents, "logo");
-   if (err.isEmpty())
-      err = readImage(&pass->imgStrip, archive, archiveContents, "strip");
-   if (err.isEmpty())
-      err = readImage(&pass->imgThumbnail, archive, archiveContents, "thumbnail");
+    if (err.isEmpty())
+        err = readImage(&pass->imgBackground, archive, archiveContents, "background");
+    if (err.isEmpty())
+        err = readImage(&pass->imgFooter, archive, archiveContents, "footer");
+    if (err.isEmpty())
+        err = readImage(&pass->imgIcon, archive, archiveContents, "icon");
+    if (err.isEmpty())
+        err = readImage(&pass->imgLogo, archive, archiveContents, "logo");
+    if (err.isEmpty())
+        err = readImage(&pass->imgStrip, archive, archiveContents, "strip");
+    if (err.isEmpty())
+        err = readImage(&pass->imgThumbnail, archive, archiveContents, "thumbnail");
 
-   if (!pass->imgStrip.isNull())
-   {
-      pass->haveStripImage = true;
+    if (!pass->imgStrip.isNull()) {
+        pass->haveStripImage = true;
 
-      // check if we need different color for the strip foreground text in case the
-      // strip color does not match well with the passes foreground text color
+        // check if we need different color for the strip foreground text in case the
+        // strip color does not match well with the passes foreground text color
 
-      QColor colorOfStrip = QColor::fromRgb(pass->imgStrip.pixel(10, 10));
-      QColor passForegroundColor(pass->standard.foregroundColor);
-      QColor passLabelColor(pass->standard.labelColor);
+        QColor colorOfStrip = QColor::fromRgb(pass->imgStrip.pixel(10, 10));
+        QColor passForegroundColor(pass->standard.foregroundColor);
+        QColor passLabelColor(pass->standard.labelColor);
 
-      double lumStrip = colors::getLuminance(colorOfStrip);
-      double lumForground = colors::getLuminance(passForegroundColor);
-      double lumLabel = colors::getLuminance(passLabelColor);
+        double lumStrip = colors::getLuminance(colorOfStrip);
+        double lumForground = colors::getLuminance(passForegroundColor);
+        double lumLabel = colors::getLuminance(passLabelColor);
 
-      if (lumStrip < 0.25 && lumForground < 0.25)
-         pass->standard.stripExtraForegroundColor = "#EDEDED";
-      else if (lumStrip > 0.25 && lumForground > 0.25)
-         pass->standard.stripExtraForegroundColor = "#3A3A3A";
+        if (lumStrip < 0.25 && lumForground < 0.25)
+            pass->standard.stripExtraForegroundColor = "#EDEDED";
+        else if (lumStrip > 0.25 && lumForground > 0.25)
+            pass->standard.stripExtraForegroundColor = "#3A3A3A";
 
-      if (lumStrip < 0.25 && lumLabel < 0.25)
-         pass->standard.stripExtraLabelColor = "#EDEDED";
-      else if (lumStrip > 0.25 && lumLabel > 0.25)
-         pass->standard.stripExtraLabelColor = "#3A3A3A";
-   }
+        if (lumStrip < 0.25 && lumLabel < 0.25)
+            pass->standard.stripExtraLabelColor = "#EDEDED";
+        else if (lumStrip > 0.25 && lumLabel > 0.25)
+            pass->standard.stripExtraLabelColor = "#3A3A3A";
+    }
 
-   return err;
+    return err;
 }
 
 // **************************************************************************
@@ -537,28 +511,27 @@ QString Pkpass::readImages(Pass* pass, QuaZip& archive, const QStringList& archi
 QString Pkpass::readImage(QImage* dest, QuaZip& archive, const QStringList& archiveContents,
                           QString imageName)
 {
-   static QStringList extensions{"@3x.png", "@2x.png", ".png"};
+    static QStringList extensions {"@3x.png", "@2x.png", ".png"};
 
-   bool res = true;
+    bool res = true;
 
-   foreach (const QString ext, extensions)
-   {
-      if (!archiveContents.contains(imageName + ext))
-         continue;
+    foreach (const QString ext, extensions) {
+        if (!archiveContents.contains(imageName + ext))
+            continue;
 
-      archive.setCurrentFile(imageName + ext);
+        archive.setCurrentFile(imageName + ext);
 
-      QuaZipFile file(&archive);
+        QuaZipFile file(&archive);
 
-      file.open(QIODevice::ReadOnly);
+        file.open(QIODevice::ReadOnly);
 
-      res = dest->loadFromData(file.readAll());
+        res = dest->loadFromData(file.readAll());
 
-      file.close();
-      break;
-   }
+        file.close();
+        break;
+    }
 
-   return res ? "" : C::gettext("Pass contains invalid/incomplete image data");
+    return res ? "" : C::gettext("Pass contains invalid/incomplete image data");
 }
 
 // **************************************************************************
@@ -567,18 +540,18 @@ QString Pkpass::readImage(QImage* dest, QuaZip& archive, const QStringList& arch
 
 QString Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QStringList& archiveContents)
 {
-   QString localizationLocale = QLocale::system().name().mid(0, 2) + ".lproj/pass.strings";
-   static QString localizationEnglish = "en.lproj/pass.strings";
+    QString localizationLocale = QLocale::system().name().mid(0, 2) + ".lproj/pass.strings";
+    static QString localizationEnglish = "en.lproj/pass.strings";
 
-   currentTranslation.clear();
+    currentTranslation.clear();
 
-   if (archiveContents.contains(localizationLocale))
-      return readLocalization(pass, archive, localizationLocale);
+    if (archiveContents.contains(localizationLocale))
+        return readLocalization(pass, archive, localizationLocale);
 
-   if (archiveContents.contains(localizationEnglish))
-      return readLocalization(pass, archive, localizationEnglish);
+    if (archiveContents.contains(localizationEnglish))
+        return readLocalization(pass, archive, localizationEnglish);
 
-   return "";
+    return "";
 }
 
 // **************************************************************************
@@ -587,34 +560,33 @@ QString Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QStringList&
 
 QString Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QString& localization)
 {
-   archive.setCurrentFile(localization);
+    archive.setCurrentFile(localization);
 
-   QuaZipFile file(&archive);
+    QuaZipFile file(&archive);
 
-   file.open(QIODevice::ReadOnly);
+    file.open(QIODevice::ReadOnly);
 
-   QByteArray line;
+    QByteArray line;
 
-   do
-   {
-      line = file.readLine();
+    do {
+        line = file.readLine();
 
-      QString lineString = QString::fromUtf8(line);
-      lineString.replace("\n", "").chop(2);
-      lineString.remove(0, 1);
+        QString lineString = QString::fromUtf8(line);
+        lineString.replace("\n", "").chop(2);
+        lineString.remove(0, 1);
 
-      if (lineString.isEmpty())
-         continue;
+        if (lineString.isEmpty())
+            continue;
 
-      auto comps = lineString.split("\" = \"");
+        auto comps = lineString.split("\" = \"");
 
-      if (comps.size() == 2)
-         currentTranslation[comps[0]] = comps[1];
-   } while (line.size());
+        if (comps.size() == 2)
+            currentTranslation[comps[0]] = comps[1];
+    } while (line.size());
 
-   file.close();
+    file.close();
 
-   return "";
+    return "";
 }
 
 // **************************************************************************
@@ -623,10 +595,10 @@ QString Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QString& loc
 
 const QString& Pkpass::translate(QString& other)
 {
-   if (!currentTranslation.contains(other))
-      return other;
+    if (!currentTranslation.contains(other))
+        return other;
 
-   return currentTranslation[other];
+    return currentTranslation[other];
 }
 
 // **************************************************************************
@@ -635,15 +607,15 @@ const QString& Pkpass::translate(QString& other)
 
 QString Pkpass::parseColor(QString rgbString)
 {
-   if (!rgbString.startsWith("rgb(") || !rgbString.endsWith(")"))
-      return rgbString;
+    if (!rgbString.startsWith("rgb(") || !rgbString.endsWith(")"))
+        return rgbString;
 
-   QStringList comps = rgbString.replace("rgb(", "").replace(")", "").split(",");
+    QStringList comps = rgbString.replace("rgb(", "").replace(")", "").split(",");
 
-   if (comps.size() < 3)
-      return "";
+    if (comps.size() < 3)
+        return "";
 
-   return QColor(comps[0].toInt(), comps[1].toInt(), comps[2].toInt()).name();
+    return QColor(comps[0].toInt(), comps[1].toInt(), comps[2].toInt()).name();
 }
 
 } // namespace passes

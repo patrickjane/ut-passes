@@ -1,10 +1,10 @@
 import QtQuick 2.7
-import Ubuntu.Components 1.3
+import Lomiri.Components 1.3
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.1
-import Ubuntu.Content 1.1
-import Ubuntu.Components.Popups 1.3
+import Lomiri.Content 1.1
+import Lomiri.Components.Popups 1.3
 
 import "./notify"
 import "./util"
@@ -21,8 +21,8 @@ MainView {
    property string initError: ""
    property var failedPasses: undefined
 
-   width: units.gu(45)
-   height: units.gu(75)
+   // width: units.gu(45)
+   // height: units.gu(75)
 
    Settings {
       id: settings
@@ -59,7 +59,7 @@ MainView {
                                                       .arg(pass.error),
                                                       i18n.tr("Delete"),
                                                       i18n.tr("Cancel"),
-                                                      UbuntuColors.red)
+                                                      LomiriColors.red)
 
                popup.accepted.connect(function() {
                   var err = passesModel.deletePass(pass.filePath, true)
@@ -108,7 +108,7 @@ MainView {
                                                 i18n.tr("Do you want to add '%1' to Passes?").arg(fileName),
                                                 i18n.tr("Add"),
                                                 i18n.tr("Cancel"),
-                                                UbuntuColors.green)
+                                                LomiriColors.green)
 
          popup.accepted.connect(function() {
             passesModel.importPass(filePath)

@@ -1,9 +1,9 @@
 import QtQuick 2.7
-import Ubuntu.Components 1.3
+import Lomiri.Components 1.3
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.1
-import Ubuntu.Content 1.1
+import Lomiri.Content 1.1
 
 import "../notify"
 import "../pass"
@@ -45,7 +45,7 @@ Page {
                                           i18n.tr("Do you want to search for pass updates?"),
                                           i18n.tr("Fetch updates"),
                                           i18n.tr("Cancel"),
-                                          UbuntuColors.green)
+                                          LomiriColors.green)
 
                popup.accepted.connect(function() {
                   passesView.showActivity = true
@@ -87,7 +87,7 @@ Page {
                                                       i18n.tr("Do you want to delete the pass from Passes? This operation cannot be undone."),
                                                       i18n.tr("Delete"),
                                                       i18n.tr("Cancel"),
-                                                      UbuntuColors.red)
+                                                      LomiriColors.red)
 
                popup.accepted.connect(function() {
                   var passFile = passesView.selectedCard.pass.filePath;
