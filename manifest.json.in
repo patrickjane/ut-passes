@@ -10,7 +10,7 @@
             "content-hub": "Passes.json"
         }
     },
-    "version": "1.2.4",
+    "version": "1.3.0",
     "maintainer": "patrickjane <mg.m@gmx.net>",
     "framework" : "@CLICK_FRAMEWORK@"
 }

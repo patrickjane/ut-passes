@@ -263,7 +263,8 @@ Rectangle {
             width: barcodeContent.codeWidth
             height: barcodeContent.codeHeight
 
-            passID: passCard.pass.id
+            passID: passCard.pass.bundleId || passCard.pass.id
+            bundleIndex: passCard.pass.bundleIndex
             expired: passCard.pass.standard.expired
             index: index
          }

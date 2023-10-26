@@ -27,28 +27,6 @@ Flipable {
       onCardClicked:  { emit: cardBackClicked() }
    }
 
-//   DropShadow {
-//      anchors.fill: frontCard
-//      horizontalOffset: units.gu(1)
-//      verticalOffset: units.gu(1)
-//      radius: units.gu(1.5)
-//      samples: 17
-//      color: "#80000000"
-//      source: frontCard
-//      visible: flipable.selected && !flipable.flipped
-//   }
-
-//   DropShadow {
-//      anchors.fill: backCard
-//      horizontalOffset: units.gu(1)
-//      verticalOffset: units.gu(1)
-//      radius: units.gu(1.5)
-//      samples: 17
-//      color: "#80000000"
-//      source: backCard
-//      visible: flipable.selected && flipable.flipped
-//   }
-
    transform: Rotation {
        id: rotation
        origin.x: flipable.width/2

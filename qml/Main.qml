@@ -62,7 +62,7 @@ MainView {
                                                       LomiriColors.red)
 
                popup.accepted.connect(function() {
-                  var err = passesModel.deletePass(pass.filePath, true)
+                  var err = passesModel.deleteFile(pass.filePath)
 
                   if (err) {
                      var comps = (pass.filePath || "").split("/")

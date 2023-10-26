@@ -65,12 +65,15 @@ Item {
    Column {
       visible: fields.primaryFields.length === 2
       anchors.right: parent.right
-      width: childrenRect.width
+      width: fields.primaryFields.length === 1 ? parent.width : parent.width / 2
+
       height: childrenRect.height
 
       Text {
+         width: parent.width
          visible: fields.primaryFields.length >= 2
          text: (fields.primaryFields.length >= 2 && primaryFields[1].label || "").toUpperCase()
+         horizontalAlignment: Text.AlignRight
          wrapMode: Text.WordWrap
          font.pointSize: units.gu(1)
          font.bold: true
@@ -78,8 +81,10 @@ Item {
       }
 
       Text {
+         width: parent.width
          visible: fields.primaryFields.length >= 2
          text: fields.primaryFields.length >= 2 && primaryFields[1].value || ""
+         horizontalAlignment: Text.AlignRight
          wrapMode: Text.WordWrap
          font.pointSize: units.gu(2)
          color: foregroundColor

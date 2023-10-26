@@ -23,12 +23,12 @@ Page {
       trailingActionBar.actions: [
          Action {
             iconName: "close"
-            visible: !!passesView.selectedCard
+            visible: !!passesView.selectedPass
             onTriggered: passesView.dismissCard()
          },
          Action {
             iconName: "import"
-            visible: !passesView.selectedCard
+            visible: !passesView.selectedPass
             onTriggered: {
                var importPage = pageStack.push(Qt.resolvedUrl("ImportPage.qml"), {})
                importPage.imported.connect(importUrls)
@@ -36,8 +36,8 @@ Page {
          },
          Action {
             iconName: "view-refresh"
-            visible: !passesView.selectedCard
-            enabled: passesModel.count > 0 && !passesView.selectedCard
+            visible: !passesView.selectedPass
+            enabled: passesModel.count > 0 && !passesView.selectedPass
 
             onTriggered: {
                var popup = Dialogs.showQuestionDialog(mainPage,
@@ -55,7 +55,7 @@ Page {
          },
          Action {
             iconName: "settings"
-            visible: !passesView.selectedCard
+            visible: !passesView.selectedPass
             onTriggered: {
                var settingsPage = pageStack.push(Qt.resolvedUrl("SettingsPage.qml"), {})
 
@@ -70,17 +70,31 @@ Page {
          },
          Action {
             iconName: "share"
-            visible: !!passesView.selectedCard
+            visible: !!passesView.selectedPass
             onTriggered: {
-               var passFile = passesView.selectedCard.pass.filePath
+               if (passesView.selectedPass.bundleName.length) {
+                  var res = passesModel.createExportBundle(passesView.selectedPass.id)
 
-               if (passFile)
-                  pageStack.push(Qt.resolvedUrl("SharePage.qml"), { url: "file://" + passFile })
+                  if (res.error) {
+                     Dialogs.showErrorDialog(mainPage,
+                           i18n.tr("Failed to export pass bundle"),
+                           i18n.tr("Pass bundle could not be exported (%1).")
+                           .arg(res.error))
+                  } else if (res.filePath) {
+                     var sharePage = Qt.resolvedUrl("SharePage.qml")
+                     pageStack.push(sharePage, { url: "file://" + res.filePath, model: passesModel, cleanupFile: res.filePath })
+                  }
+               } else {
+                  var passFile = passesView.selectedPass.filePath
+
+                  if (passFile)
+                     pageStack.push(Qt.resolvedUrl("SharePage.qml"), { url: "file://" + passFile })
+               }
             }
          },
          Action {
             iconName: "delete"
-            visible: !!passesView.selectedCard
+            visible: !!passesView.selectedPass
             onTriggered: {
                var popup = Dialogs.showQuestionDialog(root,
                                                       i18n.tr("Delete pass"),
@@ -90,9 +104,9 @@ Page {
                                                       LomiriColors.red)
 
                popup.accepted.connect(function() {
-                  var passFile = passesView.selectedCard.pass.filePath;
+                  var passFile = passesView.selectedPass.filePath;
+                  var err = passesModel.deletePass(passesView.selectedPass.id)
                   passesView.dismissCard()
-                  var err = passesModel.deletePass(passFile, false)
 
                   if (err) {
                      var comps = (passFile || "").split("/")
@@ -157,10 +171,13 @@ Page {
 
       Column {
          anchors.centerIn: parent
+         width: parent.width
          spacing: units.gu(2)
 
          Text {
             anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width*0.85
+            wrapMode: Text.WordWrap
             text: passesModel.countExpired > 0
                   ? i18n.tr("All passes have expired")
                   : i18n.tr("No passes have been added yet")

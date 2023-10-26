@@ -4,7 +4,7 @@ import Lomiri.Components 1.3
 Rectangle {
    id: view
    property var model
-   property var selectedCard
+   property var selectedPass
    property var cards: []
    property double cardHeight: height*0.85
    property double cardWidth: width*0.85
@@ -65,7 +65,7 @@ Rectangle {
       Button {
          anchors.verticalCenter: parent.verticalCenter
          anchors.horizontalCenter: parent.horizontalCenter
-         visible: model.countExpired > 0 && !view.selectedCard
+         visible: model.countExpired > 0 && !view.selectedPass
          text: view.showExpiredPasses
                ? i18n.tr(model.countExpired > 1 ? "Hide %1 expired passes" : "Hide %1 expired pass").arg(model.countExpired)
                : i18n.tr(model.countExpired > 1 ? "Show %1 expired passes" : "Show %1 expired pass").arg(model.countExpired)
@@ -87,13 +87,23 @@ Rectangle {
       }
    }
 
+   PassDetailView {
+      id: detailView
+      visible: !!view.selectedPass
+      anchors.fill: parent
+
+      pass: view.selectedPass
+      cardHeight: view.cardHeight
+      cardWidth: view.cardWidth
+   }
+
    Flickable {
       id: flickable
       anchors.fill: parent
       anchors.topMargin: view.topMargin
       contentHeight: view.cardHeight
       contentWidth: parent.width
-      interactive: !view.selectedCard
+      visible: !view.selectedPass
 
       Repeater {
          id: repeater
@@ -109,9 +119,9 @@ Rectangle {
             anchors.top: parent.top
             anchors.topMargin: index*view.cardPeekHeight
 
-            pass: modelData
+            pass: modelData.bundlePasses.length ? modelData.bundlePasses[0] : modelData
 
-            onCardFrontClicked: showCard(index)
+            onCardFrontClicked: showCard(index, modelData)
          }
 
          onItemAdded: {
@@ -141,8 +151,8 @@ Rectangle {
          id: cardDetailStatusText
          anchors.fill: parent
 
-         visible: view.selectedCard && !!view.selectedCard.pass.updateError || false
-         text: view.selectedCard && view.selectedCard.pass.updateError || ""
+         visible: view.selectedPass && !!view.selectedPass.updateError || false
+         text: view.selectedPass && view.selectedPass.updateError || ""
 
          horizontalAlignment: Text.AlignHCenter
          verticalAlignment: Text.AlignVCenter
@@ -152,47 +162,17 @@ Rectangle {
       }
    }
 
-   function showCard(index) {
+   function showCard(index, pass) {
       view.state = "cardShown"
-
-      view.cards.forEach(function(card) {
-         if (card.index === index) {
-            card.anchors.topMargin = flickable.contentY
-            card.selected = true
-            view.selectedCard = card
-         } else {
-            card.visible = false
-         }
-      })
+      view.selectedPass = pass
    }
 
    function dismissCard() {
-      if (!view.selectedCard || !view.cards.length)
-         return
-
       view.state = "noCardShown"
-
-      if (view.selectedCard.flipped) {
-         view.selectedCard.unflip()
-         dismissTimer.start()
-      } else {
-         view.cards.forEach(function(card) {
-            card.selected = false
-            card.visible = true
-            card.anchors.topMargin = card.index*units.gu(8)
-         })
-
-         view.selectedCard = undefined
-      }
+      view.selectedPass = null
    }
 
    function afterDismiss() {
-      view.cards.forEach(function(card) {
-         card.selected = false
-         card.visible = true
-         card.anchors.topMargin = card.index*units.gu(8)
-      })
-
-      view.selectedCard = undefined
+      view.selectedPass = null
    }
 }

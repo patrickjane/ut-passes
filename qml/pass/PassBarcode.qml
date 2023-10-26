@@ -4,6 +4,7 @@ import QtGraphicalEffects 1.0
 Rectangle {
    id: barcodeImageItem
    property string passID
+   property int bundleIndex
    property bool expired
    property int index: 0
    radius: 10
@@ -15,7 +16,7 @@ Rectangle {
       anchors.rightMargin: units.gu(3)
       anchors.topMargin: units.gu(3)
       anchors.bottomMargin: units.gu(3)
-      source: "image://passes/" + barcodeImageItem.passID + "/barcode/" + index
+      source: "image://passes/" + barcodeImageItem.passID + "/barcode/" + index + "/" + bundleIndex
    }
 
    BrightnessContrast {

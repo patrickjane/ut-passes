@@ -6,9 +6,17 @@ Page {
    id: picker
    property var activeTransfer
    property string url
+   property string cleanupFile: ""
+   property var model
 
    header: PageHeader {
       title: i18n.tr("Share pass")
+   }
+
+   function cleanupFn() {
+      if (cleanupFile != "") {
+         model.deleteFile(url.replace("file://", ""))
+      }
    }
 
    ContentPeerPicker {
@@ -24,7 +32,7 @@ Page {
          picker.activeTransfer = peer.request()
 
          picker.activeTransfer.stateChanged.connect(function() {
-            if (!picker.activeTransfer)
+            if (!picker || !picker.activeTransfer)
                return
 
             if (picker.activeTransfer.state === ContentTransfer.InProgress) {
@@ -49,5 +57,9 @@ Page {
    Component {
       id: resultComponent
       ContentItem {}
+   }
+
+   Component.onDestruction: {
+      cleanupFn()
    }
 }

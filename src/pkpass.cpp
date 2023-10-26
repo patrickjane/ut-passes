@@ -25,6 +25,7 @@
 #include <QBuffer>
 #include <QCryptographicHash>
 #include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QFontMetrics>
 #include <QJsonArray>
@@ -97,6 +98,105 @@ Pkpass::Pkpass()
 }
 
 // **************************************************************************
+// extractBundle
+// **************************************************************************
+
+std::optional<QString> Pkpass::extractBundle(const QFileInfo& info)
+{
+    QuaZip archive(info.absoluteFilePath());
+
+    if (!archive.open(QuaZip::mdUnzip))
+        return QString(C::gettext("Can't open passes bundle (%1)")).arg(archive.getZipError());
+
+    auto passBundlePrefix = "BUNDLE_" + info.baseName() + "_BUNDLE_";
+    auto archiveContents = archive.getFileNameList();
+    std::optional<QString> res = std::nullopt;
+
+    for (auto& fileName : archiveContents) {
+        QFileInfo extractedFileName;
+        extractedFileName.setFile(info.dir(), passBundlePrefix + fileName);
+
+        if (QFile::exists(extractedFileName.absoluteFilePath())) {
+            res = QString(C::gettext("Contained bundle pass already exists, can't extract bundle"));
+            break;
+        }
+
+        qDebug() << "Contained pass: " << fileName << " from " << info.baseName() << " save to "
+                 << extractedFileName.absoluteFilePath();
+
+        archive.setCurrentFile(fileName);
+
+        QString err;
+        QuaZipFile archiveFile(&archive);
+        QFile targetFile(extractedFileName.absoluteFilePath());
+
+        if (!archiveFile.open(QIODevice::ReadOnly)) {
+            res = QString(
+                    C::gettext("Failed to open bundle/bundle contents, can't extract bundle (%1)"))
+                    .arg(archive.getZipError());
+            break;
+        }
+
+        if (!targetFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            archiveFile.close();
+            res = QString(C::gettext(
+                            "Failed to open extracted pass for writing, can't extract bundle (%1)"))
+                    .arg(targetFile.errorString());
+            break;
+        }
+
+        auto contents = archiveFile.readAll();
+        auto written = targetFile.write(contents);
+
+        targetFile.close();
+        archiveFile.close();
+
+        if (written < contents.size()) {
+            res = QString(C::gettext("Failed extract pass from bundle (%1)"))
+                    .arg(targetFile.errorString());
+            break;
+        }
+
+        auto passResult = openPass(extractedFileName.absoluteFilePath());
+
+        delete passResult.pass;
+
+        if (!passResult.err.isEmpty()) {
+            qDebug() << "Unable to open extracted pass: " << passResult.err;
+
+            res = QString(C::gettext("Unable to open extracted pass from bundle (%1)"))
+                    .arg(passResult.err);
+            break;
+        }
+    }
+
+    archive.close();
+
+    if (!res) {
+        if (!QFile::remove(info.absoluteFilePath())) {
+            res = QString(C::gettext("Failed to delete bundle after extraction"));
+        }
+    } else {
+        for (const QFileInfo& info : info.dir().entryInfoList(
+               QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot | QDir::Readable)) {
+            if (info.fileName().startsWith(".") || !info.fileName().endsWith(".pkpass")
+                || !info.fileName().startsWith(passBundlePrefix))
+                continue;
+
+            qDebug() << "Delete extracted pass from incomplete/corrupt bundle "
+                     << info.absoluteFilePath();
+
+            if (!QFile::remove(info.absoluteFilePath())) {
+                res = QString(C::gettext(
+                  "Failed to delete already extracted pass(es) of incomplete/corrupt bundle"));
+            }
+        }
+    }
+
+    return res;
+}
+
+// **************************************************************************
 // openPass
 // **************************************************************************
 
@@ -140,6 +240,14 @@ PassResult Pkpass::openPass(const QFileInfo& info)
     pass->id = fileMd5(info.absoluteFilePath());
     pass->modified = info.lastModified();
     pass->filePath = info.absoluteFilePath();
+    pass->bundleExpired = false;
+    pass->bundleIndex = -1;
+
+    if (info.baseName().startsWith("BUNDLE_") && info.baseName().contains("_BUNDLE")) {
+        int endIdx = info.baseName().indexOf("_BUNDLE");
+
+        pass->bundleName = info.baseName().mid(7, endIdx - 7);
+    }
 
     if (!pass->sortingDate.isValid())
         pass->sortingDate = pass->modified;
@@ -203,6 +311,25 @@ QJsonDocument Pkpass::readPassDocument(const QByteArray& data, QString& err)
 
     QJsonParseError jsonErr;
     auto doc = QJsonDocument::fromJson(stringData.toUtf8(), &jsonErr);
+
+    if (jsonErr.error == QJsonParseError::NoError)
+        return doc;
+
+    // try UTF-16 (e.g. subway card uses this)
+    // fix trailing commas, remove special characters
+
+    auto utf16String = QString::fromUtf16((const ushort*) data.data())
+                         .replace('\t', "")
+                         .replace('\n', "")
+                         .replace('\r', "")
+                         .replace(trailingCommaRegEx1, "]")
+                         .replace(trailingCommaRegEx2, "}");
+
+    // remove garbage at end of JSON
+
+    utf16String.remove(utf16String.lastIndexOf('}') + 1, utf16String.length() + 1);
+
+    doc = QJsonDocument::fromJson(utf16String.toUtf8(), &jsonErr);
 
     if (jsonErr.error == QJsonParseError::NoError)
         return doc;
