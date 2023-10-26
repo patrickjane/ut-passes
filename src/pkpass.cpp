@@ -101,9 +101,10 @@ Pkpass::Pkpass()
 // extractBundle
 // **************************************************************************
 
-std::optional<QString> Pkpass::extractBundle(const QFileInfo& info)
+BundleResult Pkpass::extractBundle(const QFileInfo& info)
 {
     QuaZip archive(info.absoluteFilePath());
+    PassList bundlePasses;
 
     if (!archive.open(QuaZip::mdUnzip))
         return QString(C::gettext("Can't open passes bundle (%1)")).arg(archive.getZipError());
@@ -120,9 +121,6 @@ std::optional<QString> Pkpass::extractBundle(const QFileInfo& info)
             res = QString(C::gettext("Contained bundle pass already exists, can't extract bundle"));
             break;
         }
-
-        qDebug() << "Contained pass: " << fileName << " from " << info.baseName() << " save to "
-                 << extractedFileName.absoluteFilePath();
 
         archive.setCurrentFile(fileName);
 
@@ -159,15 +157,14 @@ std::optional<QString> Pkpass::extractBundle(const QFileInfo& info)
 
         auto passResult = openPass(extractedFileName.absoluteFilePath());
 
-        delete passResult.pass;
+        if (QString* err = std::get_if<QString>(&passResult)) {
+            qDebug() << "Unable to open extracted pass: " << *err;
 
-        if (!passResult.err.isEmpty()) {
-            qDebug() << "Unable to open extracted pass: " << passResult.err;
-
-            res = QString(C::gettext("Unable to open extracted pass from bundle (%1)"))
-                    .arg(passResult.err);
+            res = QString(C::gettext("Unable to open extracted pass from bundle (%1)")).arg(*err);
             break;
         }
+
+        bundlePasses.push_back(std::get<PassPtr>(passResult));
     }
 
     archive.close();
@@ -193,7 +190,7 @@ std::optional<QString> Pkpass::extractBundle(const QFileInfo& info)
         }
     }
 
-    return res;
+    return bundlePasses;
 }
 
 // **************************************************************************
@@ -202,7 +199,7 @@ std::optional<QString> Pkpass::extractBundle(const QFileInfo& info)
 
 PassResult Pkpass::openPass(const QFileInfo& info)
 {
-    Pass* pass = new Pass();
+    auto pass = std::make_shared<Pass>();
     currentTranslation.clear();
 
     QuaZip archive(info.absoluteFilePath());
@@ -210,12 +207,12 @@ PassResult Pkpass::openPass(const QFileInfo& info)
     bool res = archive.open(QuaZip::mdUnzip);
 
     if (!res)
-        return {pass, QString(archive.getZipError())};
+        return QString(archive.getZipError());
 
     auto archiveContents = archive.getFileNameList();
 
     if (!archiveContents.contains(filePassJson))
-        return {pass, C::gettext("Archive does not contain a valid pass")};
+        return C::gettext("Archive does not contain a valid pass");
 
     QString err = readLocalization(pass, archive, archiveContents);
 
@@ -225,6 +222,11 @@ PassResult Pkpass::openPass(const QFileInfo& info)
         err = readPass(pass, archive);
     if (err.isEmpty())
         err = readImages(pass, archive, archiveContents);
+
+    archive.close();
+
+    if (!err.isEmpty())
+        return err;
 
     QFontMetrics fm(defaultFont);
 
@@ -252,15 +254,14 @@ PassResult Pkpass::openPass(const QFileInfo& info)
     if (!pass->sortingDate.isValid())
         pass->sortingDate = pass->modified;
 
-    archive.close();
-    return {pass, err};
+    return pass;
 }
 
 // **************************************************************************
 // readPassJson
 // **************************************************************************
 
-QString Pkpass::readPass(Pass* pass, QuaZip& archive)
+QString Pkpass::readPass(PassPtr pass, QuaZip& archive)
 {
     archive.setCurrentFile(filePassJson);
 
@@ -361,7 +362,7 @@ QJsonDocument Pkpass::readPassDocument(const QByteArray& data, QString& err)
 // readPassStandard
 // **************************************************************************
 
-QString Pkpass::readPassStandard(Pass* pass, QJsonObject& object)
+QString Pkpass::readPassStandard(PassPtr pass, QJsonObject& object)
 {
     if (!object.contains("description") || !object.contains("organizationName"))
         return C::gettext("Pass information is invalid (missing description/organization key(s))");
@@ -444,7 +445,7 @@ QString Pkpass::readPassStandard(Pass* pass, QJsonObject& object)
 // readPassBarcode
 // **************************************************************************
 
-QString Pkpass::readPassBarcode(Pass* pass, QJsonObject object)
+QString Pkpass::readPassBarcode(PassPtr pass, QJsonObject object)
 {
     if (object.isEmpty() || !object.contains("format") || !object.contains("message"))
         return C::gettext("Pass contains invalid/incomplete barcode information");
@@ -478,7 +479,7 @@ QString Pkpass::readPassBarcode(Pass* pass, QJsonObject object)
 // readPassStyle
 // **************************************************************************
 
-QString Pkpass::readPassStyle(Pass* pass, QJsonObject object)
+QString Pkpass::readPassStyle(PassPtr pass, QJsonObject object)
 {
     QString err;
     QJsonObject styleObject;
@@ -586,7 +587,7 @@ QString Pkpass::readPassStyleFields(QList<PassStyleField>& fields, QJsonArray js
 // readImages
 // **************************************************************************
 
-QString Pkpass::readImages(Pass* pass, QuaZip& archive, const QStringList& archiveContents)
+QString Pkpass::readImages(PassPtr pass, QuaZip& archive, const QStringList& archiveContents)
 {
     QString err;
 
@@ -665,7 +666,7 @@ QString Pkpass::readImage(QImage* dest, QuaZip& archive, const QStringList& arch
 // readLocalization
 // **************************************************************************
 
-QString Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QStringList& archiveContents)
+QString Pkpass::readLocalization(PassPtr pass, QuaZip& archive, const QStringList& archiveContents)
 {
     QString localizationLocale = QLocale::system().name().mid(0, 2) + ".lproj/pass.strings";
     static QString localizationEnglish = "en.lproj/pass.strings";
@@ -685,7 +686,7 @@ QString Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QStringList&
 // readLocalization
 // **************************************************************************
 
-QString Pkpass::readLocalization(Pass* pass, QuaZip& archive, const QString& localization)
+QString Pkpass::readLocalization(PassPtr pass, QuaZip& archive, const QString& localization)
 {
     archive.setCurrentFile(localization);
 

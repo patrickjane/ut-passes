@@ -44,7 +44,7 @@ QImage PassImageProvider::requestImage(const QString& id, QSize* /*size*/,
     if (comps.size() < 2)
         return QImage();
 
-    Pass* pass = model->getPass(comps[0]);
+    PassPtr pass = model->getPass(comps[0]);
 
     if (!pass)
         return QImage();

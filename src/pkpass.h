@@ -25,6 +25,7 @@
 #define PKPASS_H
 
 #include <QDateTime>
+#include <QDebug>
 #include <QFileInfo>
 #include <QFont>
 #include <QImage>
@@ -34,6 +35,7 @@
 #include <QRegExp>
 
 #include "quazip/quazip.h"
+#include <memory>
 
 namespace passes {
 static QString filePassJson = "pass.json";
@@ -209,7 +211,7 @@ struct Pass {
     bool bundleExpired;
     int bundleIndex;
     QString bundleId;
-    QList<Pass*> bundlePasses;
+    std::vector<std::shared_ptr<Pass>> bundlePasses;
 
     Standard standard;
     PassStyle details;
@@ -226,7 +228,7 @@ struct Pass {
 
     ~Pass()
     {
-        qDeleteAll(bundlePasses.begin(), bundlePasses.end());
+        qDebug() << "DESTRUCT PASS";
     }
 
     explicit operator QVariant() const
@@ -247,8 +249,9 @@ struct Pass {
 
         QVariantList subPasses;
 
-        for (const auto& pass : bundlePasses)
+        for (const auto& pass : bundlePasses) {
             subPasses << static_cast<QVariant>(*pass);
+        }
 
         m.insert("bundlePasses", subPasses);
 
@@ -256,10 +259,12 @@ struct Pass {
     }
 };
 
-struct PassResult {
-    Pass* pass;
-    QString err;
-};
+using PassPtr = std::shared_ptr<Pass>;
+using PassList = std::vector<PassPtr>;
+using PassMap = std::map<QString, PassPtr>;
+
+using PassResult = std::variant<QString, PassPtr>;
+using BundleResult = std::variant<QString, PassList>;
 
 // **************************************************************************
 // class Pkpass
@@ -268,8 +273,9 @@ struct PassResult {
 class Pkpass {
 public:
     Pkpass();
+
     PassResult openPass(const QFileInfo& info);
-    std::optional<QString> extractBundle(const QFileInfo& info);
+    BundleResult extractBundle(const QFileInfo& info);
 
     void setDefaultFont(QFont to)
     {
@@ -277,17 +283,17 @@ public:
     }
 
 protected:
-    QString readPass(Pass* pass, QuaZip& archive);
+    QString readPass(PassPtr pass, QuaZip& archive);
     QJsonDocument readPassDocument(const QByteArray& data, QString& err);
-    QString readImages(Pass* pass, QuaZip& archive, const QStringList& archiveContents);
+    QString readImages(PassPtr pass, QuaZip& archive, const QStringList& archiveContents);
     QString readImage(QImage* dest, QuaZip& archive, const QStringList& archiveContents,
                       QString imageName);
-    QString readLocalization(Pass* pass, QuaZip& archive, const QStringList& archiveContents);
-    QString readLocalization(Pass* pass, QuaZip& archive, const QString& localization);
+    QString readLocalization(PassPtr pass, QuaZip& archive, const QStringList& archiveContents);
+    QString readLocalization(PassPtr pass, QuaZip& archive, const QString& localization);
 
-    QString readPassStandard(Pass* pass, QJsonObject& object);
-    QString readPassBarcode(Pass* pass, QJsonObject object);
-    QString readPassStyle(Pass* pass, QJsonObject object);
+    QString readPassStandard(PassPtr pass, QJsonObject& object);
+    QString readPassBarcode(PassPtr pass, QJsonObject object);
+    QString readPassStyle(PassPtr pass, QJsonObject object);
     QString readPassStyleFields(QList<PassStyleField>& fields, QJsonArray object);
 
     const QString& translate(QString& other);

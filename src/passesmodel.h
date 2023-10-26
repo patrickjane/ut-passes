@@ -38,14 +38,14 @@
 
 namespace passes {
 struct PassSorter {
-    bool operator()(Pass* a, Pass* b) const
+    bool operator()(PassPtr a, PassPtr b) const
     {
         return a->sortingDate.toSecsSinceEpoch() > b->sortingDate.toSecsSinceEpoch();
     }
 };
 
 template <typename T>
-using ResultCallback = std::function<void(QString, T)>;
+using ResultCallback = std::function<void(PassResult)>;
 
 class PassesModel : public QAbstractListModel {
     enum RoleNames { PassRole = Qt::UserRole + 1 };
@@ -99,7 +99,7 @@ public:
         return countExpired;
     }
 
-    Pass* getPass(QString id)
+    PassPtr getPass(QString id)
     {
         return mItemMap.count(id) ? mItemMap[id] : nullptr;
     }
@@ -112,12 +112,12 @@ signals:
 
 private:
     void openPasses(bool openExired);
-    void readPasses(QVariantList& failed, QMap<QString, QList<Pass*>>& bundles, bool doShowExpired);
-    void addBundlePasses(QMap<QString, QList<Pass*>>& bundles, bool doShowExpired);
+    void readPasses(QVariantList& failed, QMap<QString, PassList>& bundles, bool doShowExpired);
+    void addBundlePasses(QMap<QString, PassList>& bundles, bool doShowExpired);
 
-    void fetchPassUpdate(Pass* pass, ResultCallback<Pass*> callback);
+    void fetchPassUpdate(PassPtr pass, ResultCallback<PassPtr> callback);
 
-    PassResult storePassUpdate(Pass* pass, QByteArray data);
+    PassResult storePassUpdate(PassPtr pass, QByteArray data);
 
     bool isOpen(const QString& filePath);
 
@@ -130,8 +130,8 @@ private:
     Pkpass pkpass;
     PassSorter passSorter;
 
-    std::vector<Pass*> mItems;
-    std::map<QString, Pass*> mItemMap;
+    PassList mItems;
+    PassMap mItemMap;
     QDir passesDir;
 
     network::Network net;

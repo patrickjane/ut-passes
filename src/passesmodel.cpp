@@ -119,7 +119,7 @@ QString PassesModel::getDataPath() const
 // readPasses
 // **************************************************************************
 
-void PassesModel::readPasses(QVariantList& failed, QMap<QString, QList<Pass*>>& bundles,
+void PassesModel::readPasses(QVariantList& failed, QMap<QString, PassList>& bundles,
                              bool doShowExpired)
 {
     for (const QFileInfo& info : passesDir.entryInfoList(QDir::Files | QDir::NoSymLinks
@@ -132,74 +132,80 @@ void PassesModel::readPasses(QVariantList& failed, QMap<QString, QList<Pass*>>& 
 
         auto passResult = pkpass.openPass(info.absoluteFilePath());
 
-        if (!passResult.err.isEmpty()) {
-            qDebug() << "Pass open failed: " << passResult.err;
+        if (QString* err = std::get_if<QString>(&passResult)) {
+            qDebug() << "Pass open failed: " << *err;
 
             QVariantMap failedPass;
-            failedPass["filePath"] = passResult.pass->filePath;
-            failedPass["error"] = passResult.err;
+            failedPass["filePath"] = info.absoluteFilePath();
+            failedPass["error"] = *err;
             failed.append(failedPass);
-
-            delete passResult.pass;
-        } else if (!passResult.pass->bundleName.isEmpty()) {
-            if (!bundles.contains(passResult.pass->bundleName)) {
-                bundles[passResult.pass->bundleName] = QList<Pass*>() << passResult.pass;
-            } else {
-                auto& list = bundles[passResult.pass->bundleName];
-
-                list << passResult.pass;
-            }
-        } else if (doShowExpired != passResult.pass->standard.expired) {
-            delete passResult.pass;
-
-            if (!doShowExpired)
-                countExpired++;
         } else {
-            mItemMap[passResult.pass->id] = passResult.pass;
-            mItems.push_back(passResult.pass);
+            auto pass = std::get<PassPtr>(passResult);
+
+            if (!pass->bundleName.isEmpty()) {
+                if (!bundles.contains(pass->bundleName)) {
+                    bundles[pass->bundleName] = PassList {pass};
+                } else {
+                    bundles[pass->bundleName].push_back(pass);
+                }
+            } else if (doShowExpired != pass->standard.expired) {
+                if (!doShowExpired)
+                    countExpired++;
+            } else {
+                mItemMap[pass->id] = pass;
+                mItems.push_back(pass);
+            }
         }
     }
 }
 
 // **************************************************************************
-// readPasses
+// makeBundlePass
 // **************************************************************************
 
-void PassesModel::addBundlePasses(QMap<QString, QList<Pass*>>& bundles, bool doShowExpired)
+PassPtr makeBundlePass(QString bundleName, PassList& bundlePasses)
 {
     int idx = 0;
+    auto bundlePass = std::make_shared<Pass>();
+    bundlePass->id = "";
+    bundlePass->bundleName = bundleName;
+    bundlePass->bundleExpired = true;
+    bundlePass->bundlePasses = std::move(bundlePasses);
 
-    for (auto bundleName : bundles.keys()) {
-        auto bundlePass = new Pass();
-        bundlePass->id = "";
-        bundlePass->bundleName = bundleName;
-        bundlePass->bundleExpired = true;
-
-        for (auto pass : bundles[bundleName]) {
-            if (bundlePass->id == "")
-                bundlePass->id = pass->id;
-
-            if (!pass->standard.expired)
-                bundlePass->bundleExpired = false;
-
-            if (!bundlePass->modified.isValid() || bundlePass->modified.secsTo(pass->modified)) {
-                bundlePass->modified = pass->modified;
-            }
-
-            if (!bundlePass->sortingDate.isValid()
-                || bundlePass->sortingDate.secsTo(pass->sortingDate)) {
-                bundlePass->sortingDate = pass->sortingDate;
-            }
-
-            pass->bundleIndex = idx++;
+    for (auto pass : bundlePass->bundlePasses) {
+        if (bundlePass->id == "")
+            bundlePass->id = pass->id;
+        else
             pass->bundleId = bundlePass->id;
 
-            bundlePass->bundlePasses << pass;
+        if (!pass->standard.expired)
+            bundlePass->bundleExpired = false;
+
+        if (!bundlePass->modified.isValid() || bundlePass->modified.secsTo(pass->modified)) {
+            bundlePass->modified = pass->modified;
         }
 
-        if (doShowExpired != bundlePass->bundleExpired) {
-            delete bundlePass;
+        if (!bundlePass->sortingDate.isValid()
+            || bundlePass->sortingDate.secsTo(pass->sortingDate)) {
+            bundlePass->sortingDate = pass->sortingDate;
+        }
 
+        pass->bundleIndex = idx++;
+    }
+
+    return bundlePass;
+}
+
+// **************************************************************************
+// addBundlePasses
+// **************************************************************************
+
+void PassesModel::addBundlePasses(QMap<QString, PassList>& bundles, bool doShowExpired)
+{
+    for (auto bundleName : bundles.keys()) {
+        auto bundlePass = makeBundlePass(bundleName, bundles[bundleName]);
+
+        if (doShowExpired != bundlePass->bundleExpired) {
             if (!doShowExpired)
                 countExpired++;
         } else {
@@ -222,15 +228,12 @@ void PassesModel::reload()
 
     beginResetModel();
 
-    for (auto p : mItems)
-        delete p;
-
     mItems.clear();
     mItemMap.clear();
     countExpired = 0;
 
     QVariantList failed;
-    QMap<QString, QList<Pass*>> bundles;
+    QMap<QString, PassList> bundles;
 
     // loop bundles first, and extract the .pkpass files contained, so they will be picked up by the
     // next loop
@@ -240,9 +243,9 @@ void PassesModel::reload()
         if (info.fileName().startsWith(".") || !info.fileName().endsWith(".pkpasses"))
             continue;
 
-        auto err = pkpass.extractBundle(info);
+        auto res = pkpass.extractBundle(info);
 
-        if (err) {
+        if (QString* err = std::get_if<QString>(&res)) {
             qDebug() << "Bundle extract failed: " << *err;
 
             QVariantMap failedPass;
@@ -277,7 +280,7 @@ void PassesModel::showExpired()
 {
     size_t oldCount = mItems.size();
     QVariantList failed;
-    QMap<QString, QList<Pass*>> bundles;
+    QMap<QString, PassList> bundles;
 
     readPasses(failed, bundles, true);
     addBundlePasses(bundles, true);
@@ -306,7 +309,6 @@ void PassesModel::hideExpired()
     for (auto it = mItems.begin(); it != mItems.end();) {
         if ((*it)->standard.expired || (*it)->bundleExpired) {
             mItemMap.erase((*it)->id);
-            delete *it;
             it = mItems.erase(it);
         } else {
             it++;
@@ -327,7 +329,7 @@ void PassesModel::hideExpired()
 bool PassesModel::isOpen(const QString& filePath)
 {
     auto it = std::find_if(mItems.begin(), mItems.end(),
-                           [&filePath](Pass* pass) { return pass->filePath == filePath; });
+                           [&filePath](PassPtr pass) { return pass->filePath == filePath; });
 
     return it != mItems.end();
 }
@@ -358,37 +360,52 @@ QString PassesModel::importPass(const QString& filePath, bool expiredShown)
     QFile sourceFile(fp);
     bool res = sourceFile.copy(targetPath);
 
-    if (!res)
+    if (!res) {
         return QString(C::gettext("Failed to import pass into storage directory ")) + " ("
                + sourceFile.errorString() + ")";
+    }
 
     info.setFile(targetPath);
 
-    auto passResult = pkpass.openPass(info.absoluteFilePath());
-    auto it = std::find_if(mItems.begin(), mItems.end(),
-                           [&passResult](Pass* pass) { return pass->id == passResult.pass->id; });
+    PassPtr pass;
 
-    if (!passResult.err.isEmpty()) {
-        qDebug() << "Pass open failed: " << passResult.err;
+    if (info.fileName().endsWith(".pkpasses")) {
+        auto bundleName = info.baseName();
+        auto extractRes = pkpass.extractBundle(info.absoluteFilePath());
 
-        QFile::remove(targetPath);
+        if (QString* err = std::get_if<QString>(&extractRes)) {
+            return QString(C::gettext("Failed to extract pass bundle (%1)")).arg(*err);
+        }
 
-        delete passResult.pass;
-        return QString(C::gettext("Failed to open pass")) + " (" + passResult.err + ")";
-    } else if (it != mItems.end()) {
-        QFile::remove(targetPath);
-
-        delete passResult.pass;
-        return C::gettext("Pass with the same barcode has already been imported");
-    } else if (passResult.pass->standard.expired && !expiredShown) {
-        countExpired++;
-        delete passResult.pass;
+        pass = makeBundlePass(bundleName, std::get<PassList>(extractRes));
     } else {
-        if (passResult.pass->standard.expired)
+        auto passResult = pkpass.openPass(info.absoluteFilePath());
+
+        if (QString* err = std::get_if<QString>(&passResult)) {
+            qDebug() << "Pass open failed: " << *err;
+
+            QFile::remove(targetPath);
+
+            return QString(C::gettext("Failed to open pass")) + " (" + *err + ")";
+        }
+
+        pass = std::get<PassPtr>(passResult);
+    }
+
+    auto it = std::find_if(mItems.begin(), mItems.end(),
+                           [&pass](PassPtr p) { return p->id == pass->id; });
+
+    if (it != mItems.end()) {
+        QFile::remove(targetPath);
+        return C::gettext("Pass with the same barcode has already been imported");
+    } else if (pass->standard.expired && !expiredShown) {
+        countExpired++;
+    } else {
+        if (pass->standard.expired)
             countExpired++;
 
-        mItemMap[passResult.pass->id] = passResult.pass;
-        mItems.push_back(passResult.pass);
+        mItemMap[pass->id] = pass;
+        mItems.push_back(pass);
     }
 
     std::sort(mItems.begin(), mItems.end(), passSorter);
@@ -426,7 +443,7 @@ QString PassesModel::deleteFile(QString filePath)
 QString PassesModel::deletePass(QString id)
 {
     auto it = std::find_if(mItems.begin(), mItems.end(),
-                           [&id](Pass* pass) { return pass->id == id; });
+                           [&id](PassPtr pass) { return pass->id == id; });
 
     if (it == mItems.end() || !mItemMap.count(id))
         return C::gettext("Failed to delete pass (pass unknown)");
@@ -460,7 +477,6 @@ QString PassesModel::deletePass(QString id)
 
     mItemMap.erase(pass->id);
     mItems.erase(it);
-    delete pass;
 
     endResetModel();
     emit countChanged();
@@ -473,26 +489,27 @@ QString PassesModel::deletePass(QString id)
 
 void PassesModel::fetchPassUpdates()
 {
-    async::eachSeries<Pass*>(
+    async::eachSeries<PassPtr>(
       mItems,
-      [this](Pass* pass, auto next, int index) {
+      [this](PassPtr pass, auto next, int index) {
           if (pass->webservice.accessToken.isEmpty() || pass->webservice.webserviceBroken)
               return next("");
 
-          this->fetchPassUpdate(pass, [this, pass, index, next](QString err, Pass* newPass) {
+          this->fetchPassUpdate(pass, [this, pass, index, next](PassResult passResult) {
               auto modelIndex = this->createIndex(index, 0);
 
               pass->updateError = "";
 
-              if (err.isEmpty() && newPass) {
-                  mItemMap.erase(pass->id);
+              if (QString* err = std::get_if<QString>(&passResult)) {
+                  if (!err->isEmpty()) {
+                      pass->updateError = *err;
+                      this->emit dataChanged(modelIndex, modelIndex);
+                  }
+              } else {
+                  auto newPass = std::get<PassPtr>(passResult);
                   mItemMap[newPass->id] = newPass;
                   mItems[index] = newPass;
-                  delete pass;
 
-                  this->emit dataChanged(modelIndex, modelIndex);
-              } else if (!err.isEmpty()) {
-                  pass->updateError = err;
                   this->emit dataChanged(modelIndex, modelIndex);
               }
 
@@ -506,11 +523,11 @@ void PassesModel::fetchPassUpdates()
 // fetchPassUpdate
 // **************************************************************************
 
-void PassesModel::fetchPassUpdate(Pass* pass, ResultCallback<Pass*> callback)
+void PassesModel::fetchPassUpdate(PassPtr pass, ResultCallback<PassPtr> callback)
 {
     if (!pass || pass->webservice.url.isEmpty() || pass->webservice.accessToken.isEmpty())
-        return callback(C::gettext("Failed to fetch pass updates (no webservice info available)"),
-                        nullptr);
+        return callback(
+          PassResult {C::gettext("Failed to fetch pass updates (no webservice info available)")});
 
     network::ReqHeaders headers;
     headers["Authorization"] = "ApplePass " + pass->webservice.accessToken;
@@ -520,22 +537,18 @@ void PassesModel::fetchPassUpdate(Pass* pass, ResultCallback<Pass*> callback)
       [this, callback, pass](int err, int code, QByteArray body) {
           if (err != QNetworkReply::NoError || code != 200 || body.isEmpty()) {
               if (err == QNetworkReply::NoError && (code <= 299 || code >= 200))
-                  return callback("", nullptr);
+                  return callback(PassResult {""});
 
               pass->webservice.webserviceBroken = true;
 
-              return callback(QString(
-                                C::gettext("Loading pass update failed (Network error: %1/%2)"))
-                                .arg(err)
-                                .arg(code),
-                              nullptr);
+              return callback(
+                PassResult {QString(C::gettext("Loading pass update failed (Network error: %1/%2)"))
+                              .arg(err)
+                              .arg(code)});
           }
 
           // try to open the payload (= new pass)
           // if successful, swap pass objects in model & on filesystem and delete the old one.
-
-          PassResult res;
-          res.pass = nullptr;
 
           auto tempFileName = pass->filePath + ".tmp";
           QFile tempFile(tempFileName);
@@ -543,45 +556,41 @@ void PassesModel::fetchPassUpdate(Pass* pass, ResultCallback<Pass*> callback)
           auto fileRes = tempFile.open(QIODevice::WriteOnly | QIODevice::Truncate);
 
           if (!fileRes)
-              return callback(
+              return callback(PassResult {
                 QString(
                   C::gettext("Failed to save pass update to storage / could not open file (%1)"))
-                  .arg(tempFile.errorString()),
-                nullptr);
+                  .arg(tempFile.errorString())});
 
           fileRes = tempFile.write(body);
 
           if (!fileRes)
-              return callback(
+              return callback(PassResult {
                 QString(
                   C::gettext("Failed to save pass update to storage / could not write file (%1)"))
-                  .arg(tempFile.errorString()),
-                nullptr);
+                  .arg(tempFile.errorString())});
 
           tempFile.close();
 
           QFileInfo info(tempFileName);
 
-          res = pkpass.openPass(info);
+          auto passResult = pkpass.openPass(info);
 
-          if (res.err.isEmpty() && res.pass) {
+          if (std::holds_alternative<PassPtr>(passResult)) {
               QFile::remove(pass->filePath);
 
               fileRes = tempFile.rename(pass->filePath);
 
               if (!fileRes) {
-                  delete res.pass;
-                  return callback(
+                  return callback(PassResult {
                     QString(
                       C::gettext(
                         "Failed to save pass update to storage / could replace existing pass (%1)"))
-                      .arg(tempFile.errorString()),
-                    nullptr);
+                      .arg(tempFile.errorString())});
               }
           } else
               QFile::remove(tempFileName);
 
-          return callback(res.err, res.pass);
+          return callback(passResult);
       });
 }
 
