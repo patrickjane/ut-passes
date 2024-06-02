@@ -62,6 +62,14 @@ namespace passes
          format = BarcodeFormat::QR_CODE;
       else if (fmt == "PKBarcodeFormatCode128")
          format = BarcodeFormat::CODE_128;
+      else if (fmt == "CODE_39")
+         format = BarcodeFormat::CODE_39;
+      else if (fmt == "EAN-8")
+         format = BarcodeFormat::EAN_8;
+      else if (fmt == "EAN-13")
+         format = BarcodeFormat::EAN_13;
+      else if (fmt == "UPC-A")
+         format = BarcodeFormat::UPC_A;
       else
          return QString(C::gettext("Unknown barcode format")) + " (" + fmt + ")";
 
