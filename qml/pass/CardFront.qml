@@ -238,20 +238,20 @@ Rectangle {
 
       property double codeWidth: switch (passCard.pass.standard.barcodeFormat) {
                                     case "PKBarcodeFormatQR":
-                                        passCard.width * 0.6
+                                        passCard.width * 0.75
                                         break
                                     case "PKBarcodeFormatAztec":
-                                        passCard.width * 0.8
+                                        passCard.width * 0.9
                                         break
                                     default:
                                         passCard.width
                                 }
       property double codeHeight: switch (passCard.pass.standard.barcodeFormat) {
                                     case "PKBarcodeFormatQR":
-                                        passCard.width * 0.6
+                                        passCard.width * 0.75
                                         break
                                     case "PKBarcodeFormatAztec":
-                                        passCard.width * 0.8
+                                        passCard.width * 0.9
                                         break
                                     default:
                                         passCard.width * 0.4
