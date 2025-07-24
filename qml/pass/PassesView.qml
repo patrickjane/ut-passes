@@ -67,8 +67,8 @@ Rectangle {
          anchors.horizontalCenter: parent.horizontalCenter
          visible: model.countExpired > 0 && !view.selectedPass
          text: view.showExpiredPasses
-               ? i18n.tr(model.countExpired > 1 ? "Hide %1 expired passes" : "Hide %1 expired pass").arg(model.countExpired)
-               : i18n.tr(model.countExpired > 1 ? "Show %1 expired passes" : "Show %1 expired pass").arg(model.countExpired)
+               ? model.countExpired > 1 ? i18n.tr("Hide %1 expired passes").arg(model.countExpired) : i18n.tr("Hide %1 expired pass").arg(model.countExpired)
+               : model.countExpired > 1 ? i18n.tr("Show %1 expired passes").arg(model.countExpired) : i18n.tr("Show %1 expired pass").arg(model.countExpired)
          onClicked: {
             if (!view.showExpiredPasses)
                model.showExpired()
