@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: passes.s710\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-21 15:19+0000\n"
+"POT-Creation-Date: 2025-07-24 20:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,8 +25,7 @@ msgstr ""
 msgid "Storage directory could not be initialized (%1)."
 msgstr ""
 
-#: ../qml/Main.qml:56
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:377
+#: ../qml/Main.qml:56 /home/blaubaer/Forks/passes/src/passesmodel.cpp:390
 msgid "Failed to open pass"
 msgstr ""
 
@@ -154,11 +153,19 @@ msgstr ""
 msgid "This pass has expired"
 msgstr ""
 
-#: ../qml/pass/PassesView.qml:70
-msgid "Hide %1 expired passes"
+#: ../qml/pass/PassesView.qml:71
+msgid "Hide %1 expired pass"
 msgstr ""
 
 #: ../qml/pass/PassesView.qml:71
+msgid "Hide %1 expired passes"
+msgstr ""
+
+#: ../qml/pass/PassesView.qml:72
+msgid "Show %1 expired pass"
+msgstr ""
+
+#: ../qml/pass/PassesView.qml:72
 msgid "Show %1 expired passes"
 msgstr ""
 
@@ -170,148 +177,155 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/barcode.cpp:66
+#: /home/blaubaer/Forks/passes/src/barcode.cpp:74
 msgid "Unknown barcode format"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:57
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:57
 msgid "Failed to determine writable app data storage location"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:65
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:65
 msgid "App data storage location inaccessible"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:66
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:66
 msgid "can't create subfolder:"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:347
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:350
 msgid "Storage directory inaccessible, cannot import pass"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:350
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:353
 msgid "File path of the pass seems to be invalid"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:356
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:359
 msgid "Same pass has already been imported"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:362
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:365
 msgid "Failed to import pass into storage directory "
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:382
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:378
+msgid "Failed to extract pass bundle (%1)"
+msgstr ""
+
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:401
 msgid "Pass with the same barcode has already been imported"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:410
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:432
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:428
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:450
 msgid "Failed to delete pass (pass unknown)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:416
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:442
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:450
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:434
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:460
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:468
 msgid "Failed to delete pass from storage directory (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:512
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:531
 msgid "Failed to fetch pass updates (no webservice info available)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:528
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:546
 msgid "Loading pass update failed (Network error: %1/%2)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:548
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:562
 msgid "Failed to save pass update to storage / could not open file (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:557
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:570
 msgid "Failed to save pass update to storage / could not write file (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:577
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:588
 msgid ""
 "Failed to save pass update to storage / could replace existing pass (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:597
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:607
 msgid "Failed to export pass bundle (pass unknown)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:614
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:624
 msgid "Failed to export pass bundle (cant create bundle file)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:624
-msgid "Failed to export pass bundle (failed to create archive))"
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:634
+msgid "Failed to export pass bundle (failed to create archive)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:646
-msgid "Failed to export pass bundle (failed to add file to archive))"
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:656
+msgid "Failed to export pass bundle (failed to add file to archive)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:659
-#: /home/s710/Development/ubuntu-touch/Passes/src/passesmodel.cpp:673
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:669
+msgid "Failed to export pass bundle (failed to read input file)"
+msgstr ""
+
+#: /home/blaubaer/Forks/passes/src/passesmodel.cpp:683
 msgid "Failed to export pass bundle (failed to read input file))"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:109
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:110
 msgid "Can't open passes bundle (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:120
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:121
 msgid "Contained bundle pass already exists, can't extract bundle"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:135
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:133
 msgid "Failed to open bundle/bundle contents, can't extract bundle (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:143
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:141
 msgid "Failed to open extracted pass for writing, can't extract bundle (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:155
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:153
 msgid "Failed extract pass from bundle (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:167
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:163
 msgid "Unable to open extracted pass from bundle (%1)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:177
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:174
 msgid "Failed to delete bundle after extraction"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:191
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:188
 msgid ""
 "Failed to delete already extracted pass(es) of incomplete/corrupt bundle"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:218
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:215
 msgid "Archive does not contain a valid pass"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:281
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:282
 msgid "Pass information is invalid (empty)"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:354
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:355
 msgid "Pass information is invalid"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:367
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:368
 msgid "Pass information is invalid (missing description/organization key(s))"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:450
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:451
 msgid "Pass contains invalid/incomplete barcode information"
 msgstr ""
 
-#: /home/s710/Development/ubuntu-touch/Passes/src/pkpass.cpp:661
+#: /home/blaubaer/Forks/passes/src/pkpass.cpp:662
 msgid "Pass contains invalid/incomplete image data"
 msgstr ""

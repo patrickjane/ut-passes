@@ -630,7 +630,7 @@ QVariant PassesModel::createExportBundle(const QString& bundleId)
 
     if (!res) {
         result.insert("error",
-                      C::gettext("Failed to export pass bundle (failed to create archive))"));
+                      C::gettext("Failed to export pass bundle (failed to create archive)"));
         return result;
     }
 
@@ -652,7 +652,7 @@ QVariant PassesModel::createExportBundle(const QString& bundleId)
             archive.close();
             QFile::remove(targetPath);
             result.insert(
-              "error", C::gettext("Failed to export pass bundle (failed to add file to archive))"));
+              "error", C::gettext("Failed to export pass bundle (failed to add file to archive)"));
             return result;
         }
 
@@ -665,7 +665,7 @@ QVariant PassesModel::createExportBundle(const QString& bundleId)
             archive.close();
             QFile::remove(targetPath);
             result.insert("error",
-                          C::gettext("Failed to export pass bundle (failed to read input file))"));
+                          C::gettext("Failed to export pass bundle (failed to read input file)"));
             return result;
         }
 
