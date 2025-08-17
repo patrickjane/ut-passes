@@ -1,4 +1,4 @@
-clickable_minimum_required: 7
+clickable_minimum_required: 8
 builder: cmake
 kill: Passes
 framework: ubuntu-sdk-20.04
