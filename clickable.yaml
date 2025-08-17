@@ -10,4 +10,4 @@ libraries:
     builder: cmake
   zxing-cpp:
     builder: cmake
-    prebuild: "cd libs/zxing-cpp && git apply ../../zxing_patch.patch || exit 0"
+    prebuild: "git apply ../../../zxing_patch.patch || exit 0"
