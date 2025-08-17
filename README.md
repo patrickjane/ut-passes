@@ -49,3 +49,10 @@ Licensed under the MIT license
 - This app uses the [zxing](https://github.com/nu-book/zxing-cpp.git) libraries for generating barcodes.
 
 - This app uses the [Quazip](https://github.com/stachenov/quazip.git) library for opening compressed archives.
+
+# Building this app
+
+Create a fork of this repository, and clone locally with `git clone LINK`.
+Then get the submodules with `git submodule update --init`.
+Next you need to build the submodules with `clickable build --libs quazip --arch arm64` and `clickable build --libs zxing-cpp --arch arm64`. Or simply `clickable build --libs --arch arm64` for both. Use the target architecture you are building for.
+Now you are ready to build, install and start the app with `clickable`.
