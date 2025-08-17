@@ -231,7 +231,7 @@ Rectangle {
       }
    }
 
-   // the scannable code (QR, PDF417, Code128, Aztec)
+   // the scannable code (QR, PDF417, Code128, Aztec, EAN8, EAN16, CODE_39, UPC-A)
 
    ListView {
       id: barcodeContent
